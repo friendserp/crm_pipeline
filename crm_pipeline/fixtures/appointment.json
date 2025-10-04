@@ -1,0 +1,53 @@
+[
+ {
+  "appointment_with": "Lead",
+  "calendar_event": null,
+  "custom_scheduled_end_time": "2025-10-01 11:53:00",
+  "customer_details": "Somthing detail goes here",
+  "customer_email": "lijsamuael@gmail.com",
+  "customer_name": "Samuael Ketema",
+  "customer_phone_number": "0921644607",
+  "customer_skype": null,
+  "docstatus": 0,
+  "doctype": "Appointment",
+  "modified": "2025-10-04 15:45:05.694262",
+  "name": "APMT-Samuael Ketema-0003",
+  "party": null,
+  "scheduled_time": "2025-10-01 07:53:00",
+  "status": "Unverified"
+ },
+ {
+  "appointment_with": "Lead",
+  "calendar_event": "EV00001",
+  "custom_scheduled_end_time": "2025-10-15 02:29:00",
+  "customer_details": "Something goes here like details of the appointment",
+  "customer_email": "samict77@gmail.com",
+  "customer_name": "Elsabet Meseret",
+  "customer_phone_number": "0921644607",
+  "customer_skype": null,
+  "docstatus": 0,
+  "doctype": "Appointment",
+  "modified": "2025-10-04 15:41:32.671885",
+  "name": "APMT-Elsabet Meseret-0004",
+  "party": "CRM-LEAD-2025-00002",
+  "scheduled_time": "2025-10-14 15:37:00",
+  "status": "Open"
+ },
+ {
+  "appointment_with": "Lead",
+  "calendar_event": null,
+  "custom_scheduled_end_time": "2025-10-16 13:14:00",
+  "customer_details": "Abebe beso bela ena mote eko",
+  "customer_email": "lijsamuael@gmail.com",
+  "customer_name": "Samuael Ketema",
+  "customer_phone_number": "0921644607",
+  "customer_skype": null,
+  "docstatus": 0,
+  "doctype": "Appointment",
+  "modified": "2025-10-04 13:10:27.938822",
+  "name": "APMT-Samuael Ketema-0005",
+  "party": null,
+  "scheduled_time": "2025-10-23 13:12:00",
+  "status": "Open"
+ }
+]
