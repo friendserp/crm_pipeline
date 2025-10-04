@@ -8,7 +8,7 @@ You can install this app using the [bench](https://github.com/frappe/bench) CLI:
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
-bench get-app https://github.com/lijsamuael/crm_pipeline.git
+bench get-app https://github.com/friendserp/crm_pipeline.git
 bench --site [your site name] install-app crm_pipeline
 ```
 
