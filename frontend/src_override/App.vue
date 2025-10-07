@@ -1,4 +1,4 @@
-<template>
+<template className="bg-[#233d48]">
   <FrappeUIProvider>
     <Layout
       class="isolate"

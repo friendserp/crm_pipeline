@@ -15,7 +15,7 @@
           :icon="NotificationsIcon"
           :isCollapsed="isSidebarCollapsed"
           @click="toggleNotificationPanel"
-          class="relative mx-2 my-0.5 rounded-lg text-white hover:bg-[#2f4f5e] transition-colors"
+          class="relative mx-2 my-0.5 rounded-lg text-white hover:text-white hover:bg-[#4994b8] transition-colors"
         >
           <template #right>
             <Badge
@@ -26,7 +26,7 @@
             />
             <div
               v-else-if="unreadNotificationsCount"
-              class="absolute -left-1.5 top-1 z-20 h-[6px] w-[6px] rounded-full bg-[#ff6b6b] ring-2 ring-[#233d48]"
+              class="absolute -left-1.5 top-1 z-20 h-[6px] w-[6px] rounded-full bg-[#ff6b6b] ring-2 ring-[#4994b8]"
             />
           </template>
         </SidebarLink>
@@ -44,7 +44,7 @@
           <template #header="{ opened, hide, toggle }">
             <div
               v-if="!hide"
-              class="flex cursor-pointer gap-2 px-2 py-1 text-sm font-semibold text-white hover:text-black transition-all duration-300 ease-in-out"
+              class="flex cursor-pointer gap-2 px-2 py-1 text-sm font-semibold text-white hover:text-white transition-all duration-300 ease-in-out"
               :class="{
                 'ml-0 h-0 overflow-hidden opacity-0': isSidebarCollapsed,
                 'ml-2 mt-3 h-6 w-auto opacity-100': !isSidebarCollapsed
@@ -67,7 +67,7 @@
               :label="__(link.label)"
               :to="link.to"
               :isCollapsed="isSidebarCollapsed"
-              class="mx-2 my-0.5 rounded-lg text-white hover:bg-[#2f4f5e] hover:text-black transition-colors"
+              class="mx-2 my-0.5 rounded-lg text-white hover:bg-[#4994b8] hover:text-white transition-colors"
             />
           </nav>
         </Section>
@@ -92,7 +92,7 @@
         :label="__('Clear cookies & Logout')"
         :isCollapsed="isSidebarCollapsed"
         @click="showConfirmClearCookies = true"
-        class="rounded-lg text-white hover:bg-[#2f4f5e] hover:text-black transition-colors"
+        class="rounded-lg text-white hover:bg-[#4f88a3] hover:text-white transition-colors"
       >
         <template #icon>
           <span class="grid h-5 w-5 flex-shrink-0 place-items-center">
@@ -107,7 +107,7 @@
         :label="isSidebarCollapsed ? __('Expand') : __('Collapse')"
         :isCollapsed="isSidebarCollapsed"
         @click="isSidebarCollapsed = !isSidebarCollapsed"
-        class="rounded-lg text-white hover:bg-[#2f4f5e] hover:text-black transition-colors"
+        class="rounded-lg text-white hover:bg-[#548faa] hover:text-white transition-colors"
       >
         <template #icon>
           <span class="grid h-5 w-5 flex-shrink-0 place-items-center">
@@ -212,11 +212,6 @@ const isFCSite = ref(window.is_fc_site)
 const isDemoSite = ref(window.is_demo_site)
 
 const links = [
-  {
-    label: 'Dashboard',
-    icon: LucideLayoutDashboard,
-    to: 'Dashboard',
-  },
     {
     label: 'Requests',
     icon: HelpIcon,
@@ -237,6 +232,22 @@ const links = [
     icon: TaskIcon,
     to: 'Tasks',
   },
+  {
+    label: 'Campaigns',
+    icon: NoteIcon,
+    to: 'Campaigns',
+  },
+  {
+    label: 'Timesheets',
+    icon: DealsIcon,
+    to: 'Timesheets',
+  },
+  {
+    label: 'Expenses',
+    icon: StepsIcon,
+    to: 'Expenses',
+  }
+
 ]
 
 const allViews = computed(() => {

@@ -55,6 +55,22 @@ const routes = [
     component: () => import(`@/pages/${handleMobileView('Issue')}.vue`),
     props: true,
   },
+          {
+    alias: '/expenses',
+    path: '/expenses/view/:viewType?',
+    name: 'Expenses',
+    component: () => import('@/pages/Expenses.vue'),
+  },
+    {
+    path: '/campaigns',
+    name: 'Campaigns',
+    component: () => import('@/pages/Campaigns.vue'),
+  },
+      {
+    path: '/timesheets',
+    name: 'Timesheets',
+    component: () => import('@/pages/Timesheets.vue'),
+  },
   {
     path: '/welcome',
     name: 'Welcome',

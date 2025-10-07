@@ -2,7 +2,7 @@
   <button
     class="flex h-7 cursor-pointer items-center rounded duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-outline-gray-3"
     :class="isActive 
-      ? 'bg-surface-selected shadow-sm text-black font-bold' 
+      ? 'bg-surface-selected shadow-sm text-white font-bold' 
       : 'text-ink-gray-7 hover:bg-surface-gray-2'"
     @click="handleClick"
   >
@@ -40,7 +40,7 @@
             class="flex-1 flex-shrink-0 truncate duration-300 ease-in-out"
             :class="[
               isCollapsed ? 'ml-0 w-0 overflow-hidden opacity-0' : 'ml-2 w-auto opacity-100',
-              isActive ? 'text-base font-bold text-black' : 'text-sm'
+              isActive ? 'text-base font-bold text-white' : 'text-sm'
             ]"
           >
             {{ label }}

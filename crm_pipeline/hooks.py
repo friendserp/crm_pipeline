@@ -265,6 +265,9 @@ fixtures = [
     },
         {
         "dt": "Issue",
+    },
+        {
+        "dt": "Payment Entry",
     }
             
 ]
