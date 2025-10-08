@@ -4,12 +4,12 @@
     <div class="max-w-6xl mx-auto">
       <!-- Header Section -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">Payment Entries</h1>
+        <h1 class="text-3xl font-bold text-white mb-2">Expenses</h1>
         <div class="text-gray-300 text-lg mb-4">
           <p>Manage your payments and receipts efficiently</p>
         </div>
       </div>
-
+      
       <!-- Search and Actions -->
       <div class="bg-[#2a4a58] rounded-lg border border-[#2a4a58] p-4 mb-6">
         <div class="flex justify-between items-center">
@@ -168,29 +168,42 @@
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Party *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Party Type *</label>
                     <select 
-                      v-model="currentPayment.party"
-                      @change="updatePartyDetails"
+                      v-model="currentPayment.party_type"
                       class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white"
                       required
                     >
-                      <option value="">Select {{ currentPayment.payment_type === 'Receive' ? 'Customer' : 'Supplier' }}</option>
+                      <option value="Supplier">Supplier</option>
+                      <option value="Customer">Customer</option>
+                      <option value="Employee">Employee</option>
+                      <option value="Shareholder">Shareholder</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Party *</label>
+                    <select 
+                      v-model="currentPayment.party"
+                      @change="updatePartyName"
+                      class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white"
+                      required
+                    >
+                      <option value="">Select {{ currentPayment.party_type }}</option>
                       <option 
                         v-for="party in currentParties" 
                         :key="party.name"
                         :value="party.name"
                       >
-                        {{ party.name }} - {{ party.party_name }}
+                        {{ party.name }}
                       </option>
                     </select>
                   </div>
 
                   <div v-if="currentPayment.party">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Party Details</label>
-                    <div class="w-full px-3 py-2 border border-[#2a4a58] rounded-md bg-[#233d48] text-gray-300 text-sm space-y-1">
-                      <div><strong>Name:</strong> {{ currentPayment.party_name }}</div>
-                      <div><strong>Type:</strong> {{ currentPayment.party_type }}</div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Party Name</label>
+                    <div class="w-full px-3 py-2 border border-[#2a4a58] rounded-md bg-[#233d48] text-gray-300 text-sm">
+                      {{ currentPayment.party_name || 'Select a party to see details' }}
                     </div>
                   </div>
 
@@ -214,7 +227,7 @@
                 <h4 class="text-lg font-semibold text-white mb-4">Amount Details</h4>
                 
                 <div class="space-y-4">
-                  <!-- <div>
+                  <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">
                       {{ currentPayment.payment_type === 'Receive' ? 'Received Amount *' : 'Paid Amount *' }}
                     </label>
@@ -227,10 +240,10 @@
                       step="0.01"
                       required
                     >
-                  </div> -->
+                  </div>
 
-                  <div>
-                      {{ currentPayment.payment_type === 'Receive' ? 'Received Amount *' : 'Paid Amount *' }}
+                  <!-- <div v-if="currentPayment.payment_type === 'Receive'">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Received Amount *</label>
                     <input 
                       type="number" 
                       v-model="currentPayment.received_amount"
@@ -239,8 +252,7 @@
                       step="0.01"
                       required
                     >
-                  </div>
-
+                  </div> -->
                 </div>
               </div>
 
@@ -493,6 +505,7 @@ export default {
     isFormValid() {
       const requiredFields = [
         this.currentPayment.payment_type,
+        this.currentPayment.party_type,
         this.currentPayment.party,
         this.currentPayment.posting_date,
         this.currentPayment.paid_amount,
@@ -508,12 +521,27 @@ export default {
     },
     
     currentParties() {
-      if (this.currentPayment.payment_type === 'Receive') {
+      if (this.currentPayment.party_type === 'Customer') {
         return this.customers;
-      } else if (this.currentPayment.payment_type === 'Pay') {
+      } else if (this.currentPayment.party_type === 'Supplier') {
         return this.suppliers;
       }
       return [];
+    }
+  },
+  watch: {
+    'currentPayment.payment_type': function(newVal) {
+      if (newVal === 'Receive') {
+        this.currentPayment.party_type = 'Customer';
+      } else if (newVal === 'Pay') {
+        this.currentPayment.party_type = 'Supplier';
+      }
+    },
+    
+    'currentPayment.party_type': function() {
+      // Clear party selection when party type changes
+      this.currentPayment.party = '';
+      this.currentPayment.party_name = '';
     }
   },
   mounted() {
@@ -540,7 +568,7 @@ export default {
         reference_no: '',
         reference_date: new Date().toISOString().split('T')[0],
         remarks: '',
-        company: 'Friends ERP (Demo)',
+        company: '',
         status: 'Draft',
         references: [],
         in_words: ''
@@ -585,23 +613,11 @@ export default {
           const data = await response.json();
           this.customers = data.message.map(customer => ({
             name: customer.name,
-            party_name: customer.customer_name,
-            party_type: 'Customer'
+            customer_name: customer.customer_name
           }));
-        } else {
-          // Fallback to sample customers
-          this.customers = [
-            { name: 'CUST-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Customer' },
-            { name: 'CUST-00002', party_name: 'Summit Traders Ltd.', party_type: 'Customer' },
-            { name: 'CUST-00003', party_name: 'Zuckerman Security Ltd.', party_type: 'Customer' }
-          ];
-        }
+        } 
       } catch (error) {
         console.error('Error loading customers:', error);
-        this.customers = [
-          { name: 'CUST-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Customer' },
-          { name: 'CUST-00002', party_name: 'Summit Traders Ltd.', party_type: 'Customer' }
-        ];
       }
     },
     
@@ -626,51 +642,32 @@ export default {
           const data = await response.json();
           this.suppliers = data.message.map(supplier => ({
             name: supplier.name,
-            party_name: supplier.supplier_name,
-            party_type: 'Supplier'
+            supplier_name: supplier.supplier_name
           }));
         } 
       } catch (error) {
         console.error('Error loading suppliers:', error);
-
       }
     },
     
-    updatePartyDetails() {
+    updatePartyName() {
       if (this.currentPayment.party) {
-        let selectedParty = null;
-        
-        if (this.currentPayment.payment_type === 'Receive') {
-          selectedParty = this.customers.find(c => c.name === this.currentPayment.party);
-        } else if (this.currentPayment.payment_type === 'Pay') {
-          selectedParty = this.suppliers.find(s => s.name === this.currentPayment.party);
-        }
-        
-        if (selectedParty) {
-          this.currentPayment.party_name = selectedParty.party_name;
-          this.currentPayment.party_type = selectedParty.party_type;
+        if (this.currentPayment.party_type === 'Customer') {
+          const customer = this.customers.find(c => c.name === this.currentPayment.party);
+          this.currentPayment.party_name = customer ? customer.customer_name : '';
+        } else if (this.currentPayment.party_type === 'Supplier') {
+          const supplier = this.suppliers.find(s => s.name === this.currentPayment.party);
+          this.currentPayment.party_name = supplier ? supplier.supplier_name : '';
         }
       } else {
         this.currentPayment.party_name = '';
-        this.currentPayment.party_type = this.currentPayment.payment_type === 'Receive' ? 'Customer' : 'Supplier';
       }
     },
     
     updateAmountFields() {
-      if (this.currentPayment.payment_type === 'Receive') {
         this.currentPayment.received_amount = this.currentPayment.paid_amount;
-      }
-      this.updateAmountInWords();
     },
     
-    updateAmountInWords() {
-      const amount = this.currentPayment.paid_amount;
-      if (amount && amount > 0) {
-        this.currentPayment.in_words = `ETB ${this.numberToWords(amount)} only.`;
-      } else {
-        this.currentPayment.in_words = 'Zero';
-      }
-    },
     
     async loadCashAccounts() {
       try {
@@ -694,7 +691,7 @@ export default {
         if (response.ok) {
           const data = await response.json();
           this.cashAccounts = data.message;
-        }
+        } 
       } catch (error) {
         console.error('Error loading cash accounts:', error);
       }
@@ -721,13 +718,7 @@ export default {
         if (response.ok) {
           const data = await response.json();
           this.paidFromAccounts = data.message;
-        } else {
-          this.paidFromAccounts = [
-            { name: 'Debtors - FED', account_type: 'Receivable', account_name: 'Debtors' },
-            { name: 'Creditors - FED', account_type: 'Payable', account_name: 'Creditors' },
-            { name: 'Demo Bank Account - FED', account_type: 'Bank', account_name: 'Demo Bank Account' }
-          ];
-        }
+        } 
       } catch (error) {
         console.error('Error loading paid from accounts:', error);
       }
@@ -752,30 +743,10 @@ export default {
         if (response.ok) {
           const data = await response.json();
           this.paymentEntries = data.message;
-        } else {
-          throw new Error('Failed to load payment entries');
-        }
+        } 
       } catch (error) {
         console.error('Error loading payment entries:', error);
-        this.paymentEntries = [
-          {
-            "name": "ACC-PAY-2025-00006",
-            "payment_type": "Receive",
-            "party_type": "Customer",
-            "party": "CUST-00001",
-            "party_name": "Grant Plastics Ltd.",
-            "posting_date": "2025-10-07",
-            "paid_amount": 1200.0,
-            "received_amount": 1200.0,
-            "paid_from": "Debtors - FED",
-            "paid_to": "Cash - FED",
-            "status": "Submitted",
-            "company": "Friends ERP (Demo)",
-            "in_words": "ETB One Thousand, Two Hundred only.",
-            "remarks": "Amount ETB 1200 received from Grant Plastics Ltd.",
-            "references": []
-          }
-        ];
+
       }
     },
     
@@ -795,13 +766,9 @@ export default {
     },
     
     handlePaymentTypeChange() {
-      // Clear party selection when payment type changes
-      this.currentPayment.party = '';
-      this.currentPayment.party_name = '';
-      this.currentPayment.party_type = this.currentPayment.payment_type === 'Receive' ? 'Customer' : 'Supplier';
-      
-      // Auto-set default accounts based on payment type
+      // Auto-set party type and accounts based on payment type
       if (this.currentPayment.payment_type === 'Receive') {
+        this.currentPayment.party_type = 'Customer';
         if (!this.currentPayment.paid_from && this.paidFromAccounts.length > 0) {
           const debtorAccount = this.paidFromAccounts.find(acc => acc.account_type === 'Receivable');
           if (debtorAccount) {
@@ -813,6 +780,7 @@ export default {
         }
         this.currentPayment.received_amount = this.currentPayment.paid_amount;
       } else if (this.currentPayment.payment_type === 'Pay') {
+        this.currentPayment.party_type = 'Supplier';
         if (!this.currentPayment.paid_from && this.paidFromAccounts.length > 0) {
           const bankAccount = this.paidFromAccounts.find(acc => acc.account_type === 'Bank');
           if (bankAccount) {

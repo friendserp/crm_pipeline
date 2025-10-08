@@ -162,12 +162,7 @@
             >
               View Details
             </button>
-            <button
-              @click.stop="editCustomer(customer)"
-              class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
-            >
-              Edit
-            </button>
+
           </div>
         </div>
       </div>
@@ -422,9 +417,9 @@ const customerForm = ref({
   address_line2: '',
   city: '',
   state: '',
-  country: 'Ethiopia',
+  country: '',
   pincode: '',
-  territory: 'Ethiopia',
+  territory: '',
   disabled: 0
 })
 
@@ -645,9 +640,9 @@ const cancelEdit = () => {
     address_line2: '',
     city: '',
     state: '',
-    country: 'Ethiopia',
+    country: '',
     pincode: '',
-    territory: 'Ethiopia',
+    territory: '',
     disabled: 0
   }
 }

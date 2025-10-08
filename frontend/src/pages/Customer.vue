@@ -5,20 +5,20 @@
       <div class="flex justify-between items-center mb-8">
         <div>
           <h1 class="text-2xl font-bold text-white">{{ customer.customer_name }}</h1>
-          <p class="text-gray-300">Customer Details</p>
+          <p class="text-gray-300">Client Details</p>
         </div>
         <div class="flex space-x-3">
           <button
             @click="$router.back()"
             class="px-4 py-2 border border-[#8acc33] text-[#8acc33] bg-[#233d48] hover:bg-[#2a4a58] rounded-md font-medium transition-colors duration-200"
           >
-            Back to Customers
+            Back to Clients
           </button>
           <button
             @click="deleteCustomer"
             class="px-4 py-2 bg-red-600 text-white rounded-md font-medium transition-colors duration-200 hover:bg-red-700"
           >
-            Delete Customer
+            Delete Client
           </button>
         </div>
       </div>
