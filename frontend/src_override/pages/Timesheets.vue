@@ -423,7 +423,7 @@ export default {
         start_date: this.getTodayDate(),
         end_date: this.getTodayDate(),
         customer: '',
-        company: 'Friends ERP',
+        company: '',
         status: 'Draft',
         time_logs: []
       },
@@ -628,7 +628,7 @@ export default {
         start_date: this.getTodayDate(),
         end_date: this.getTodayDate(),
         customer: '',
-        company: 'Friends ERP',
+        company: '',
         status: 'Draft',
         time_logs: [this.createEmptyTimeLog()]
       };
