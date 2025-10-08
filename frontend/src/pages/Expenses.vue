@@ -72,7 +72,7 @@
                     </div>
                     <div>
                       <span class="text-gray-400">Amount:</span>
-                      <span class="ml-2 text-[#8acc33] font-semibold">{{ formatCurrency(payment.paid_amount) }}</span>
+                      <span class="ml-2 text-[#8acc33] font-semibold">{{ payment.paid_amount }}</span>
                     </div>
                     <div>
                       <span class="text-gray-400">Date:</span>
@@ -89,7 +89,7 @@
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-[#8acc33] font-semibold text-lg">{{ formatCurrency(payment.paid_amount) }}</div>
+                <div class="text-[#8acc33] font-semibold text-lg">{{ payment.paid_amount }}</div>
                 <div class="text-gray-400 text-sm">{{ payment.party_type }}</div>
               </div>
             </div>
@@ -816,6 +816,12 @@ export default {
       this.isSaving = true;
       
       try {
+            if (!this.currentPayment.source_exchange_rate) {
+      this.currentPayment.source_exchange_rate = 1.0;
+    }
+    if (!this.currentPayment.target_exchange_rate) {
+      this.currentPayment.target_exchange_rate = 1.0;
+    }
         let response;
         
         if (this.currentPayment.name) {
@@ -934,12 +940,6 @@ export default {
       }
     },
     
-    formatCurrency(amount) {
-      return new Intl.NumberFormat('en-ET', {
-        style: 'currency',
-        currency: 'ETB'
-      }).format(amount);
-    },
     
     formatDate(dateString) {
       if (!dateString) return '';
