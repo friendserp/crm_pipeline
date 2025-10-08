@@ -212,41 +212,58 @@ const isFCSite = ref(window.is_fc_site)
 const isDemoSite = ref(window.is_demo_site)
 
 const links = [
+      {
+    label: 'Home',
+    icon: OrganizationsIcon,
+    to: 'Welcome'
+  },
+    {
+    label: 'Schedules',
+    icon: LucideLayoutDashboard,
+    to: 'Schedules',
+  },
+        {
+    label: 'Clients',
+    icon: DealsIcon,
+    to: 'Customers'
+  },
     {
     label: 'Requests',
     icon: HelpIcon,
     to: 'Issues'
   },
-  {
-    label: 'Schedules',
-    icon: LucideLayoutDashboard,
-    to: 'Schedules',
-  },
+
   {
     label: 'Quotes',
     icon: PhoneIcon,
     to: 'Quotes',
   },
   {
-    label: 'Tasks',
+    label: 'Jobs',
     icon: TaskIcon,
     to: 'Tasks',
   },
+    {
+    label: 'Invoices',
+    icon: DealsIcon,
+    to: 'Invoices',
+  },
   {
-    label: 'Campaigns',
+    label: 'Marketing',
     icon: NoteIcon,
     to: 'Campaigns',
   },
+    {
+    label: 'Expenses',
+    icon: StepsIcon,
+    to: 'Expenses',
+  },
+
   {
     label: 'Timesheets',
     icon: DealsIcon,
     to: 'Timesheets',
   },
-  {
-    label: 'Expenses',
-    icon: StepsIcon,
-    to: 'Expenses',
-  }
 
 ]
 

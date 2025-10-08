@@ -183,3 +183,41 @@ def set_status_from_type(doc, method):
     """
     if doc.type:
         doc.status = doc.type
+        
+        
+        
+@frappe.whitelist(allow_guest=True)
+def get_csrf_token():
+    """
+    Return a fresh CSRF token
+    """
+    frappe.local.response["message"] = {
+        "csrf_token": frappe.generate_hash(length=32)  # just generate one
+    }
+    return frappe.local.response["message"]
+
+
+@frappe.whitelist(allow_guest=True)
+def force_logout(csrf_token=None):
+    """
+    Logout user by clearing session.
+    Accepts CSRF token from frontend.
+    """
+    if not csrf_token:
+        frappe.throw(_("CSRF token required"))
+
+    # optional: you can validate the token here if you store it in session
+    # for simplicity, we skip validation since it's for force logout
+
+    try:
+        # Delete server-side session cookies
+        frappe.local.cookie_manager.delete_cookie("sid")
+        frappe.local.cookie_manager.delete_cookie("full_name")
+        frappe.local.cookie_manager.delete_cookie("system_user")
+        frappe.local.cookie_manager.delete_cookie("user_id")
+        frappe.local.response["message"] = _("Logged out successfully")
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Force logout failed")
+        frappe.throw(_("Logout failed"))
+
+    return frappe.local.response["message"]

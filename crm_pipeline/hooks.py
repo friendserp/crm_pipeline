@@ -264,10 +264,12 @@ fixtures = [
         "dt": "Appointment",
     },
         {
-        "dt": "Issue",
+        "dt": "Sales Invoice",
     },
         {
-        "dt": "Payment Entry",
+        "dt": "Customer",
+    },{
+        "dt": "Address"
     }
             
 ]

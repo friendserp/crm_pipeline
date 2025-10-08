@@ -1,4 +1,4 @@
-<template className="bg-[#233d48]">
+<template>
   <FrappeUIProvider>
     <Layout
       class="isolate"
@@ -37,7 +37,7 @@ setConfig('localTimezone', window.timezone?.user || null);
 
 //Force logout implementation when API fails
 async function forceClearAll() {
-  console.log('Before clear:')
+  console.log('Before clear,,,,,,,,,,,,,,,,,,:')
   console.log('Cookies:', document.cookie)
   console.log('localStorage:', { ...localStorage })
   console.log('sessionStorage:', { ...sessionStorage })
@@ -64,7 +64,7 @@ async function forceClearAll() {
     const base = window.location.origin
 
     // Fetch CSRF token explicitly
-    const csrfResp = await fetch(`${base}/api/method/crm_override.api.get_csrf_token`, {
+    const csrfResp = await fetch(`${base}/api/method/crm_pipeline.api.get_csrf_token`, {
       method: 'GET',
       credentials: 'include',
       headers: { Accept: 'application/json' },
@@ -78,7 +78,7 @@ async function forceClearAll() {
         // Call logout with token
         const params = new URLSearchParams({ csrf_token })
         await fetch(
-          `${base}/api/method/crm_override.api.force_logout?${params.toString()}`,
+          `${base}/api/method/crm_pipeline.api.force_logout?${params.toString()}`,
           {
             method: 'GET',
             credentials: 'include',
@@ -125,7 +125,7 @@ async function testCSRFToken() {
     } else {
       const errorText = await response.text()
       console.log('Response text:', errorText)
-      
+      forceClearAll()
       try {
         const errorData = JSON.parse(errorText)
         console.log('Parsed error data:', errorData)
@@ -156,7 +156,7 @@ onMounted(async () => {
     return
   }
 
-  console.log('Starting CSRF token check with POST request...')
+  console.log('Starting CSRF token check with POST request...........ldaksjfkl.')
   
   // Test CSRF token with a POST request
   const csrfValid = await testCSRFToken()
@@ -171,3 +171,11 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style>
+body {
+  transform: scale(1.25);
+  transform-origin: 0 0;
+  width: 80%; /* Adjust to prevent horizontal scrollbar */
+}
+</style>

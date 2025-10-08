@@ -7,6 +7,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
+    component: () => import('@/pages/Welcome.vue'),
   },
   {
     path: '/dashboard',
@@ -44,6 +45,30 @@ const routes = [
     props: true,
   },
         {
+    alias: '/customers',
+    path: '/customers/view/:viewType?',
+    name: 'Customers',
+    component: () => import('@/pages/Customers.vue'),
+  },
+  {
+    path: '/customers/:customerId',
+    name: 'Customer',
+    component: () => import(`@/pages/${handleMobileView('Customer')}.vue`),
+    props: true,
+  },
+          {
+    alias: '/invoices',
+    path: '/invoices/view/:viewType?',
+    name: 'Invoices',
+    component: () => import('@/pages/Invoices.vue'),
+  },
+  {
+    path: '/invoices/:invoiceId',
+    name: 'Invoice',
+    component: () => import(`@/pages/${handleMobileView('Invoice')}.vue`),
+    props: true,
+  },
+  {
     alias: '/issues',
     path: '/issues/view/:viewType?',
     name: 'Issues',

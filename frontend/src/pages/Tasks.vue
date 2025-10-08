@@ -1,13 +1,16 @@
 <!-- Tasks.vue -->
 <template>
-  <div class="w-full  bg-[#233d48]">
+  <div class="w-full bg-[#233d48]">
     <!-- Header -->
     <div class="bg-[#233d48] border-b border-[#2a4a58]">
       <div class="container mx-auto px-6 py-4">
         <div class="flex justify-between items-center">
-          <h1 class="text-2xl font-bold text-white">Tasks</h1>
-          <button class="bg-[#2E86AB] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#257195] transition-colors">
-            Create Task
+          <h1 class="text-2xl font-bold text-white">Jobs</h1>
+          <button 
+            @click="showCreateModal = true"
+            class="bg-[#2E86AB] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#257195] transition-colors"
+          >
+            Create Job
           </button>
         </div>
       </div>
@@ -39,7 +42,6 @@
           </div>
         </div>
       </div>
-
 
       <!-- All Tasks Section -->
       <div class="bg-[#2a4a58] rounded-lg border border-[#315566]">
@@ -159,6 +161,144 @@
         </div>
       </div>
     </div>
+
+    <!-- Create Task Modal -->
+    <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-[#2a4a58] rounded-lg shadow-xl w-full max-w-2xl border border-[#315566]">
+        <div class="p-6 border-b border-[#315566] bg-[#315566]">
+          <h3 class="text-xl font-semibold text-white">Create New Job</h3>
+        </div>
+        
+        <div class="p-6">
+          <form @submit.prevent="createTask">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Subject *</label>
+                <input 
+                  type="text" 
+                  v-model="newTask.subject"
+                  required
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                  placeholder="Enter task subject"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Type</label>
+                <select 
+                  v-model="newTask.type"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                >
+                  <option value="One-off job">One-off job</option>
+                  <option value="Recurring job">Recurring job</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Priority</label>
+                <select 
+                  v-model="newTask.priority"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                <select 
+                  v-model="newTask.status"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                >
+                  <option value="Open">Open</option>
+                  <option value="Working">Working</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                <input 
+                  type="date" 
+                  v-model="newTask.exp_start_date"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                <input 
+                  type="date" 
+                  v-model="newTask.exp_end_date"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                >
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+              <textarea 
+                v-model="newTask.description"
+                rows="4"
+                class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                placeholder="Enter task description"
+              ></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Expected Time (hours)</label>
+                <input 
+                  type="number" 
+                  v-model="newTask.expected_time"
+                  step="0.5"
+                  min="0"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                  placeholder="0.0"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Progress (%)</label>
+                <input 
+                  type="number" 
+                  v-model="newTask.progress"
+                  min="0"
+                  max="100"
+                  class="w-full px-3 py-2 border border-[#315566] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                  placeholder="0"
+                >
+              </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-4 border-t border-[#315566]">
+              <button 
+                type="button"
+                @click="showCreateModal = false"
+                class="px-4 py-2 border border-[#315566] text-gray-300 bg-transparent hover:bg-[#233d48] font-medium rounded-md transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                :disabled="isCreating"
+                :class="[
+                  'px-4 py-2 font-medium rounded-md transition-colors duration-200 flex items-center',
+                  isCreating
+                    ? 'bg-gray-500 cursor-not-allowed'
+                    : 'bg-[#2E86AB] hover:bg-[#257195] text-white'
+                ]"
+              >
+                <svg v-if="isCreating" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isCreating ? 'Creating...' : 'Create Job' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -181,7 +321,21 @@ export default {
         action_required: 0,
         unscheduled: 0
       },
-      loading: false
+      loading: false,
+      showCreateModal: false,
+      isCreating: false,
+      newTask: {
+        subject: '',
+        type: 'One-off job',
+        priority: 'Medium',
+        status: 'Open',
+        exp_start_date: '',
+        exp_end_date: '',
+        description: '',
+        expected_time: 0,
+        progress: 0,
+        company: 'Friends ERP'
+      }
     }
   },
   computed: {
@@ -265,6 +419,7 @@ export default {
 
         const data = await response.json()
         this.tasks = data.message || []
+        this.calculateOverview()
       } catch (error) {
         console.error('Error loading tasks:', error)
       }
@@ -298,6 +453,85 @@ export default {
       } catch (error) {
         console.error('Error loading timesheets:', error)
       }
+    },
+
+    async createTask() {
+      if (!this.newTask.subject.trim()) {
+        this.showAlert('Please enter a task subject', 'red')
+        return
+      }
+
+      this.isCreating = true
+      try {
+        const response = await fetch('/api/method/frappe.client.insert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doc: {
+              doctype: 'Task',
+              subject: this.newTask.subject,
+              type: this.newTask.type,
+              priority: this.newTask.priority,
+              status: this.newTask.status,
+              exp_start_date: this.newTask.exp_start_date || undefined,
+              exp_end_date: this.newTask.exp_end_date || undefined,
+              description: this.newTask.description,
+              expected_time: parseFloat(this.newTask.expected_time) || 0,
+              progress: parseFloat(this.newTask.progress) || 0,
+              company: this.newTask.company
+            }
+          })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          this.showAlert('Task created successfully!', 'green')
+          this.showCreateModal = false
+          this.resetNewTask()
+          await this.loadTasks() // Reload tasks to show the new one
+        } else {
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to create task')
+        }
+      } catch (error) {
+        console.error('Error creating task:', error)
+        this.showAlert('Error creating task: ' + error.message, 'red')
+      } finally {
+        this.isCreating = false
+      }
+    },
+
+    resetNewTask() {
+      this.newTask = {
+        subject: '',
+        type: 'One-off job',
+        priority: 'Medium',
+        status: 'Open',
+        exp_start_date: '',
+        exp_end_date: '',
+        description: '',
+        expected_time: 0,
+        progress: 0,
+        company: 'Friends ERP'
+      }
+    },
+
+    showAlert(message, type) {
+      // Simple alert implementation
+      const alertDiv = document.createElement('div')
+      alertDiv.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'green' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+      }`
+      alertDiv.textContent = message
+      
+      document.body.appendChild(alertDiv)
+      
+      setTimeout(() => {
+        document.body.removeChild(alertDiv)
+      }, 3000)
     },
 
     getCSRFToken() {
@@ -384,7 +618,6 @@ export default {
     formatCurrency(amount) {
       return `ETB ${parseFloat(amount || 0).toFixed(2)}`
     },
-
   }
 }
 </script>

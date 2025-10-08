@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#233d48] p-6">
+  <div class="h-full bg-[#233d48] p-6">
     <!-- Floating Timer Display (when minimized) -->
     <div 
       v-if="timer.isRunning && !showTimerModal" 
@@ -156,13 +156,41 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Customer</label>
-            <input 
-              type="text" 
-              v-model="currentTimesheet.customer"
-              @input="hasChanges = true"
-              class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white"
-              placeholder="Optional"
-            >
+            <div class="relative">
+              <input 
+                type="text" 
+                v-model="currentTimesheet.customer"
+                @input="hasChanges = true"
+                @focus="showCustomerDropdown = true"
+                @blur="setTimeout(() => { showCustomerDropdown = false }, 200)"
+                class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white"
+                placeholder="Select customer"
+              />
+              
+              <!-- Customer Dropdown -->
+              <div 
+                v-if="showCustomerDropdown" 
+                class="absolute z-10 w-full mt-1 bg-[#233d48] border border-[#2a4a58] rounded-md shadow-lg max-h-60 overflow-y-auto"
+              >
+                <div 
+                  v-for="customer in filteredCustomers" 
+                  :key="customer.name"
+                  @mousedown="selectCustomer(customer)"
+                  class="px-3 py-2 text-sm text-white hover:bg-[#2a4a58] cursor-pointer border-b border-[#2a4a58] last:border-b-0"
+                >
+                  <div class="font-medium">{{ customer.customer_name }}</div>
+                  <div class="text-gray-400 text-xs">
+                    {{ customer.email_id || 'No email' }} • {{ customer.mobile_no || 'No phone' }}
+                  </div>
+                </div>
+                <div 
+                  v-if="filteredCustomers.length === 0" 
+                  class="px-3 py-2 text-sm text-gray-400"
+                >
+                  No customers found
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -205,13 +233,41 @@
               
               <!-- Task/Project -->
               <div class="col-span-3">
-                <input 
-                  type="text" 
-                  v-model="log.task"
-                  @input="hasChanges = true"
-                  class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white text-sm"
-                  placeholder="Task or Project"
-                >
+                <div class="relative">
+                  <input 
+                    type="text" 
+                    v-model="log.task"
+                    @input="hasChanges = true"
+                    @focus="showTaskDropdown(index)"
+                    @blur="setTimeout(() => { hideTaskDropdown(index) }, 200)"
+                    class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white text-sm"
+                    placeholder="Select or type task"
+                  />
+                  
+                  <!-- Task Dropdown -->
+                  <div 
+                    v-if="log.showTaskDropdown" 
+                    class="absolute z-10 w-full mt-1 bg-[#233d48] border border-[#2a4a58] rounded-md shadow-lg max-h-60 overflow-y-auto"
+                  >
+                    <div 
+                      v-for="task in filteredTasks(log.task)" 
+                      :key="task.name"
+                      @mousedown="selectTask(index, task)"
+                      class="px-3 py-2 text-sm text-white hover:bg-[#2a4a58] cursor-pointer border-b border-[#2a4a58] last:border-b-0"
+                    >
+                      <div class="font-medium">{{ task.subject }}</div>
+                      <div class="text-gray-400 text-xs">
+                        {{ task.status }} • {{ task.project || 'No Project' }}
+                      </div>
+                    </div>
+                    <div 
+                      v-if="filteredTasks(log.task).length === 0" 
+                      class="px-3 py-2 text-sm text-gray-400"
+                    >
+                      No tasks found
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <!-- From Time -->
@@ -350,7 +406,10 @@ export default {
       timePeriods: ['Today', 'Week', 'Month'],
       currentUser: {},
       timesheets: [],
+      tasks: [], // Store fetched tasks
+      customers: [], // Store fetched customers
       showTimerModal: false,
+      showCustomerDropdown: false,
       timer: {
         startTime: null,
         displayTime: '0:00:00',
@@ -382,11 +441,26 @@ export default {
       }, 0);
       
       return total.toFixed(3);
+    },
+    
+    filteredCustomers() {
+      if (!this.currentTimesheet.customer) {
+        return this.customers.slice(0, 10); // Show first 10 customers when no search
+      }
+      
+      const term = this.currentTimesheet.customer.toLowerCase();
+      return this.customers.filter(customer => 
+        customer.customer_name.toLowerCase().includes(term) ||
+        (customer.email_id && customer.email_id.toLowerCase().includes(term)) ||
+        (customer.mobile_no && customer.mobile_no.includes(term))
+      ).slice(0, 10); // Limit to 10 results
     }
   },
-  mounted() {
-    this.loadCurrentUser();
-    this.loadTimesheets();
+  async mounted() {
+    await this.loadCurrentUser();
+    await this.loadTasks(); // Load tasks on component mount
+    await this.loadCustomers(); // Load customers on component mount
+    await this.loadTimesheets();
     this.initializeNewTimesheet();
   },
   methods: {
@@ -412,6 +486,102 @@ export default {
         console.error('Error loading user:', error);
         this.currentUser = { full_name: 'Demo User', email: 'user@example.com' };
       }
+    },
+    
+    // Method to fetch customers from backend
+    async loadCustomers() {
+      try {
+        const response = await fetch('/api/method/frappe.client.get_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doctype: 'Customer',
+            fields: ['name', 'customer_name', 'email_id', 'mobile_no', 'customer_type', 'territory'],
+            filters: [['disabled', '=', 0]], // Only active customers
+            order_by: 'customer_name asc',
+            limit: 200
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.customers = data.message || [];
+        } else {
+          console.error('Failed to load customers');
+
+        }
+      } catch (error) {
+        console.error('Error loading customers:', error);
+      }
+    },
+    
+    // Select customer from dropdown
+    selectCustomer(customer) {
+      this.currentTimesheet.customer = customer.customer_name;
+      this.showCustomerDropdown = false;
+      this.hasChanges = true;
+    },
+    
+    // New method to fetch tasks from backend
+    async loadTasks() {
+      try {
+        const response = await fetch('/api/method/frappe.client.get_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doctype: 'Task',
+            fields: ['name', 'subject', 'status', 'project', 'priority', 'exp_start_date', 'exp_end_date'],
+            filters: [['status', 'not in', ['Completed', 'Cancelled']]],
+            order_by: 'modified desc',
+            limit: 100
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.tasks = data.message || [];
+        } else {
+          console.error('Failed to load tasks');
+        }
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      }
+    },
+    
+    // Filter tasks based on search input
+    filteredTasks(searchTerm) {
+      if (!searchTerm) {
+        return this.tasks.slice(0, 10); // Show first 10 tasks when no search
+      }
+      
+      const term = searchTerm.toLowerCase();
+      return this.tasks.filter(task => 
+        task.subject.toLowerCase().includes(term) ||
+        (task.project && task.project.toLowerCase().includes(term))
+      ).slice(0, 10); // Limit to 10 results
+    },
+    
+    // Show task dropdown for specific log entry
+    showTaskDropdown(index) {
+      this.currentTimesheet.time_logs[index].showTaskDropdown = true;
+    },
+    
+    // Hide task dropdown for specific log entry
+    hideTaskDropdown(index) {
+      this.currentTimesheet.time_logs[index].showTaskDropdown = false;
+    },
+    
+    // Select a task for the log entry (using task name directly)
+    selectTask(index, task) {
+      this.currentTimesheet.time_logs[index].task = task.name;
+      this.currentTimesheet.time_logs[index].showTaskDropdown = false;
+      this.hasChanges = true;
     },
     
     async loadTimesheets() {
@@ -475,7 +645,8 @@ export default {
         to_time: now.toISOString().slice(0, 16),
         task: '',
         hours: '1.000',
-        is_billable: 0
+        is_billable: 0,
+        showTaskDropdown: false
       };
     },
     
@@ -509,6 +680,11 @@ export default {
     
     viewTimesheet(timesheet) {
       this.currentTimesheet = JSON.parse(JSON.stringify(timesheet));
+      // Ensure each log has the showTaskDropdown property
+      this.currentTimesheet.time_logs = this.currentTimesheet.time_logs.map(log => ({
+        ...log,
+        showTaskDropdown: false
+      }));
       this.hasChanges = false;
     },
     
@@ -520,6 +696,19 @@ export default {
       try {
         let response;
         
+        // Prepare timesheet data without the dropdown property
+        const timesheetData = {
+          ...this.currentTimesheet,
+          time_logs: this.currentTimesheet.time_logs.map(log => ({
+            activity_type: log.activity_type,
+            from_time: log.from_time,
+            to_time: log.to_time,
+            task: log.task, // Only storing task name, not task_id
+            hours: log.hours,
+            is_billable: log.is_billable
+          }))
+        };
+        
         if (this.currentTimesheet.name) {
           // Update existing timesheet
           response = await fetch('/api/method/frappe.client.save', {
@@ -529,7 +718,7 @@ export default {
               'X-Frappe-CSRF-Token': this.getCSRFToken()
             },
             body: JSON.stringify({
-              doc: this.currentTimesheet
+              doc: timesheetData
             })
           });
         } else {
@@ -543,7 +732,7 @@ export default {
             body: JSON.stringify({
               doc: {
                 doctype: 'Timesheet',
-                ...this.currentTimesheet
+                ...timesheetData
               }
             })
           });
@@ -651,7 +840,8 @@ export default {
         to_time: endTime,
         task: '',
         hours: hours,
-        is_billable: 0
+        is_billable: 0,
+        showTaskDropdown: false
       });
       
       this.timer.isRunning = false;
@@ -698,7 +888,8 @@ export default {
       setTimeout(() => {
         document.body.removeChild(alertDiv);
       }, 3000);
-    }
+    },
+    
   }
 }
 </script>
@@ -724,5 +915,11 @@ input[type="datetime-local"] {
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
+}
+
+/* Task dropdown styling */
+.task-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
 }
 </style>

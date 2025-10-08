@@ -168,28 +168,30 @@
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Party Type *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Party *</label>
                     <select 
-                      v-model="currentPayment.party_type"
+                      v-model="currentPayment.party"
+                      @change="updatePartyDetails"
                       class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white"
                       required
                     >
-                      <option value="Supplier">Supplier</option>
-                      <option value="Customer">Customer</option>
-                      <option value="Employee">Employee</option>
-                      <option value="Shareholder">Shareholder</option>
+                      <option value="">Select {{ currentPayment.payment_type === 'Receive' ? 'Customer' : 'Supplier' }}</option>
+                      <option 
+                        v-for="party in currentParties" 
+                        :key="party.name"
+                        :value="party.name"
+                      >
+                        {{ party.name }} - {{ party.party_name }}
+                      </option>
                     </select>
                   </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Party *</label>
-                    <input 
-                      type="text" 
-                      v-model="currentPayment.party"
-                      class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent bg-[#233d48] text-white"
-                      placeholder="Enter party name"
-                      required
-                    >
+                  <div v-if="currentPayment.party">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Party Details</label>
+                    <div class="w-full px-3 py-2 border border-[#2a4a58] rounded-md bg-[#233d48] text-gray-300 text-sm space-y-1">
+                      <div><strong>Name:</strong> {{ currentPayment.party_name }}</div>
+                      <div><strong>Type:</strong> {{ currentPayment.party_type }}</div>
+                    </div>
                   </div>
 
                   <div>
@@ -473,6 +475,8 @@ export default {
       currentPayment: this.createEmptyPayment(),
       cashAccounts: [],
       paidFromAccounts: [],
+      customers: [],
+      suppliers: [],
       isSaving: false,
       isSubmitting: false
     }
@@ -495,7 +499,6 @@ export default {
     isFormValid() {
       const requiredFields = [
         this.currentPayment.payment_type,
-        this.currentPayment.party_type,
         this.currentPayment.party,
         this.currentPayment.posting_date,
         this.currentPayment.paid_amount,
@@ -508,12 +511,23 @@ export default {
       }
       
       return requiredFields.every(field => field && field.toString().trim() !== '');
+    },
+    
+    currentParties() {
+      if (this.currentPayment.payment_type === 'Receive') {
+        return this.customers;
+      } else if (this.currentPayment.payment_type === 'Pay') {
+        return this.suppliers;
+      }
+      return [];
     }
   },
   mounted() {
     this.loadPaymentEntries();
     this.loadCashAccounts();
     this.loadPaidFromAccounts();
+    this.loadCustomers();
+    this.loadSuppliers();
   },
   methods: {
     createEmptyPayment() {
@@ -554,6 +568,108 @@ export default {
     
     removeReference(index) {
       this.currentPayment.references.splice(index, 1);
+    },
+    
+    async loadCustomers() {
+      try {
+        const response = await fetch('/api/method/frappe.client.get_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doctype: 'Customer',
+            fields: ['name', 'customer_name'],
+            filters: [['disabled', '=', 0]],
+            order_by: 'customer_name',
+            limit: 1000
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.customers = data.message.map(customer => ({
+            name: customer.name,
+            party_name: customer.customer_name,
+            party_type: 'Customer'
+          }));
+        } else {
+          // Fallback to sample customers
+          this.customers = [
+            { name: 'CUST-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Customer' },
+            { name: 'CUST-00002', party_name: 'Summit Traders Ltd.', party_type: 'Customer' },
+            { name: 'CUST-00003', party_name: 'Zuckerman Security Ltd.', party_type: 'Customer' }
+          ];
+        }
+      } catch (error) {
+        console.error('Error loading customers:', error);
+        this.customers = [
+          { name: 'CUST-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Customer' },
+          { name: 'CUST-00002', party_name: 'Summit Traders Ltd.', party_type: 'Customer' }
+        ];
+      }
+    },
+    
+    async loadSuppliers() {
+      try {
+        const response = await fetch('/api/method/frappe.client.get_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doctype: 'Supplier',
+            fields: ['name', 'supplier_name'],
+            filters: [['disabled', '=', 0]],
+            order_by: 'supplier_name',
+            limit: 1000
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.suppliers = data.message.map(supplier => ({
+            name: supplier.name,
+            party_name: supplier.supplier_name,
+            party_type: 'Supplier'
+          }));
+        } else {
+          // Fallback to sample suppliers
+          this.suppliers = [
+            { name: 'SUPP-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Supplier' },
+            { name: 'SUPP-00002', party_name: 'Summit Traders Ltd.', party_type: 'Supplier' },
+            { name: 'SUPP-00003', party_name: 'Zuckerman Security Ltd.', party_type: 'Supplier' }
+          ];
+        }
+      } catch (error) {
+        console.error('Error loading suppliers:', error);
+        this.suppliers = [
+          { name: 'SUPP-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Supplier' },
+          { name: 'SUPP-00002', party_name: 'Summit Traders Ltd.', party_type: 'Supplier' }
+        ];
+      }
+    },
+    
+    updatePartyDetails() {
+      if (this.currentPayment.party) {
+        let selectedParty = null;
+        
+        if (this.currentPayment.payment_type === 'Receive') {
+          selectedParty = this.customers.find(c => c.name === this.currentPayment.party);
+        } else if (this.currentPayment.payment_type === 'Pay') {
+          selectedParty = this.suppliers.find(s => s.name === this.currentPayment.party);
+        }
+        
+        if (selectedParty) {
+          this.currentPayment.party_name = selectedParty.party_name;
+          this.currentPayment.party_type = selectedParty.party_type;
+        }
+      } else {
+        this.currentPayment.party_name = '';
+        this.currentPayment.party_type = this.currentPayment.payment_type === 'Receive' ? 'Customer' : 'Supplier';
+      }
     },
     
     updateAmountFields() {
@@ -677,6 +793,7 @@ export default {
             "name": "ACC-PAY-2025-00006",
             "payment_type": "Receive",
             "party_type": "Customer",
+            "party": "CUST-00001",
             "party_name": "Grant Plastics Ltd.",
             "posting_date": "2025-10-07",
             "paid_amount": 1200.0,
@@ -709,6 +826,12 @@ export default {
     },
     
     handlePaymentTypeChange() {
+      // Clear party selection when payment type changes
+      this.currentPayment.party = '';
+      this.currentPayment.party_name = '';
+      this.currentPayment.party_type = this.currentPayment.payment_type === 'Receive' ? 'Customer' : 'Supplier';
+      
+      // Auto-set default accounts based on payment type
       if (this.currentPayment.payment_type === 'Receive') {
         if (!this.currentPayment.paid_from && this.paidFromAccounts.length > 0) {
           const debtorAccount = this.paidFromAccounts.find(acc => acc.account_type === 'Receivable');
@@ -756,12 +879,21 @@ export default {
       this.isSaving = true;
       
       try {
+        let response;
+        
         if (this.currentPayment.name) {
-          // UPDATE existing payment using set_value for each field
-          await this.updatePaymentFields();
+          response = await fetch('/api/method/frappe.client.save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Frappe-CSRF-Token': this.getCSRFToken()
+            },
+            body: JSON.stringify({
+              doc: this.currentPayment
+            })
+          });
         } else {
-          // CREATE new payment
-          const response = await fetch('/api/method/frappe.client.insert', {
+          response = await fetch('/api/method/frappe.client.insert', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -774,17 +906,21 @@ export default {
               }
             })
           });
+        }
+        
+        if (response.ok) {
+          const data = await response.json();
           
-          if (response.ok) {
-            const data = await response.json();
+          if (!this.currentPayment.name) {
             this.currentPayment.name = data.message.name;
-            this.showAlert('Payment entry created successfully', 'green');
-            this.loadPaymentEntries();
-            this.closeModal();
-          } else {
-            const errorData = await response.json();
-            throw new Error(errorData._server_messages || 'Failed to create payment entry');
           }
+          
+          this.showAlert('Payment entry saved successfully', 'green');
+          this.loadPaymentEntries();
+          this.closeModal();
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData._server_messages || 'Failed to save payment entry');
         }
       } catch (error) {
         console.error('Error saving payment entry:', error);
@@ -794,72 +930,12 @@ export default {
       }
     },
     
-    async updatePaymentFields() {
-      try {
-        // Update each field individually using set_value
-        const fieldsToUpdate = {
-          'payment_type': this.currentPayment.payment_type,
-          'party_type': this.currentPayment.party_type,
-          'party': this.currentPayment.party,
-          'party_name': this.currentPayment.party,
-          'posting_date': this.currentPayment.posting_date,
-          'paid_amount': this.currentPayment.paid_amount,
-          'received_amount': this.currentPayment.received_amount,
-          'paid_from': this.currentPayment.paid_from,
-          'paid_to': this.currentPayment.paid_to,
-          'mode_of_payment': this.currentPayment.mode_of_payment,
-          'reference_no': this.currentPayment.reference_no,
-          'remarks': this.currentPayment.remarks,
-          'in_words': this.currentPayment.in_words
-        };
-        
-        // Update each field
-        for (const [fieldname, value] of Object.entries(fieldsToUpdate)) {
-          await fetch('/api/method/frappe.client.set_value', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Frappe-CSRF-Token': this.getCSRFToken()
-            },
-            body: JSON.stringify({
-              doctype: 'Payment Entry',
-              name: this.currentPayment.name,
-              fieldname: {
-                [fieldname]: value
-              }
-            })
-          });
-        }
-        
-        // Handle references separately if they exist
-        if (this.currentPayment.references && this.currentPayment.references.length > 0) {
-          // For references, we might need to delete existing ones and add new ones
-          // This is a simplified approach - in production you'd need more complex handling
-          console.log('References update would require more complex handling');
-        }
-        
-        this.showAlert('Payment entry updated successfully', 'green');
-        this.loadPaymentEntries();
-        this.closeModal();
-        
-      } catch (error) {
-        console.error('Error updating payment entry:', error);
-        throw new Error('Failed to update payment entry: ' + error.message);
-      }
-    },
-    
     async submitPayment() {
-      if (this.isSubmitting || !this.currentPayment.name) return;
+      if (this.isSubmitting) return;
       
       this.isSubmitting = true;
       
       try {
-        // First save any changes, then submit
-        if (this.hasChanges) {
-          await this.updatePaymentFields();
-        }
-        
-        // Now submit the payment
         const response = await fetch('/api/method/frappe.client.set_value', {
           method: 'POST',
           headers: {
@@ -870,7 +946,7 @@ export default {
             doctype: 'Payment Entry',
             name: this.currentPayment.name,
             fieldname: {
-              'status': 'Submitted'
+              status: 'Submitted'
             }
           })
         });
@@ -880,12 +956,11 @@ export default {
           this.loadPaymentEntries();
           this.closeModal();
         } else {
-          const errorData = await response.json();
-          throw new Error(errorData._server_messages || 'Failed to submit payment entry');
+          throw new Error('Failed to submit payment entry');
         }
       } catch (error) {
         console.error('Error submitting payment entry:', error);
-        this.showAlert('Error submitting payment entry: ' + error.message, 'red');
+        this.showAlert('Error submitting payment entry', 'red');
       } finally {
         this.isSubmitting = false;
       }
