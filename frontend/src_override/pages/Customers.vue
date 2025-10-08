@@ -344,7 +344,7 @@ const saveCustomer = async () => {
       disabled: customerForm.value.disabled
     }
 
-    const customerResponse = await fetch('/api/resource/Customer', {
+    const customerResponse = await fetch('/api/method/frappe.client.insert', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
