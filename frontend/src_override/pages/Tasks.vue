@@ -332,7 +332,7 @@ export default {
         description: '',
         expected_time: 0,
         progress: 0,
-        company: 'Friends ERP'
+        company: ''
       }
     }
   },
@@ -513,7 +513,7 @@ export default {
         description: '',
         expected_time: 0,
         progress: 0,
-        company: 'Friends ERP'
+        company: ''
       }
     },
 
