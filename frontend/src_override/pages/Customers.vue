@@ -422,9 +422,9 @@ const customerForm = ref({
   address_line2: '',
   city: '',
   state: '',
-  country: 'Ethiopia',
+  country: '',
   pincode: '',
-  territory: 'Ethiopia',
+  territory: '',
   disabled: 0
 })
 
@@ -645,9 +645,9 @@ const cancelEdit = () => {
     address_line2: '',
     city: '',
     state: '',
-    country: 'Ethiopia',
+    country: '',
     pincode: '',
-    territory: 'Ethiopia',
+    territory: '',
     disabled: 0
   }
 }
