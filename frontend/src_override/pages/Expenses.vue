@@ -214,7 +214,7 @@
                 <h4 class="text-lg font-semibold text-white mb-4">Amount Details</h4>
                 
                 <div class="space-y-4">
-                  <div>
+                  <!-- <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">
                       {{ currentPayment.payment_type === 'Receive' ? 'Received Amount *' : 'Paid Amount *' }}
                     </label>
@@ -227,10 +227,10 @@
                       step="0.01"
                       required
                     >
-                  </div>
+                  </div> -->
 
-                  <div v-if="currentPayment.payment_type === 'Receive'">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Received Amount *</label>
+                  <div>
+                      {{ currentPayment.payment_type === 'Receive' ? 'Received Amount *' : 'Paid Amount *' }}
                     <input 
                       type="number" 
                       v-model="currentPayment.received_amount"
@@ -712,7 +712,6 @@ export default {
             doctype: 'Account',
             fields: ['name', 'account_type', 'account_name'],
             filters: [
-              ['company', '=', 'Friends ERP (Demo)'],
               ['is_group', '=', 0]
             ],
             order_by: 'name'
@@ -731,10 +730,6 @@ export default {
         }
       } catch (error) {
         console.error('Error loading paid from accounts:', error);
-        this.paidFromAccounts = [
-          { name: 'Debtors - FED', account_type: 'Receivable', account_name: 'Debtors' },
-          { name: 'Creditors - FED', account_type: 'Payable', account_name: 'Creditors' }
-        ];
       }
     },
     
