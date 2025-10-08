@@ -816,6 +816,7 @@ export default {
       this.isSaving = true;
       
       try {
+        this.currentPayment.company = 'Sri Infotech'
             if (!this.currentPayment.source_exchange_rate) {
       this.currentPayment.source_exchange_rate = 1.0;
     }

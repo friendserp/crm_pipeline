@@ -6,7 +6,10 @@
       <div class="container mx-auto px-6 py-4">
         <div class="flex justify-between items-center">
           <h1 class="text-2xl font-bold text-white">Quotations</h1>
-          <button class="bg-[#2E86AB] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#257195] transition-colors">
+          <button 
+            @click="createNewQuotation"
+            class="bg-[#2E86AB] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#257195] transition-colors"
+          >
             Create Quotation
           </button>
         </div>
@@ -137,6 +140,268 @@
         </div>
       </div>
     </div>
+
+    <!-- Quotation Creation Modal -->
+    <div 
+      v-if="showCreateModal" 
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      @click="closeCreateModal"
+    >
+      <div 
+        class="bg-[#233d48] rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-[#2a4a58]"
+        @click.stop
+      >
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-[#2a4a58] bg-[#2a4a58]">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-semibold text-white">
+              Create New Quotation
+            </h3>
+            <button 
+              @click="closeCreateModal"
+              class="text-gray-400 hover:text-white transition-colors"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-6">
+          <!-- Quotation Details -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Left Column -->
+            <div class="space-y-6">
+              <!-- Customer Information -->
+              <div class="bg-[#2a4a58] rounded-lg border border-[#2a4a58] p-4">
+                <h4 class="text-lg font-semibold text-white mb-4">Customer Information</h4>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Customer *</label>
+                    <select 
+                      v-model="newQuotation.party_name"
+                      class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                      required
+                    >
+                      <option value="">Select Customer</option>
+                      <option 
+                        v-for="customer in customers" 
+                        :key="customer.name"
+                        :value="customer.name"
+                      >
+                        {{ customer.customer_name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Transaction Date *</label>
+                    <input 
+                      type="date" 
+                      v-model="newQuotation.transaction_date"
+                      class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                      required
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+              <!-- Currency & Pricing -->
+              <div class="bg-[#2a4a58] rounded-lg border border-[#2a4a58] p-4">
+                <h4 class="text-lg font-semibold text-white mb-4">Currency & Pricing</h4>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Currency *</label>
+                    <select 
+                      v-model="newQuotation.currency"
+                      @change="handleCurrencyChange"
+                      class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                      required
+                    >
+                      <option value="ETB">ETB - Ethiopian Birr</option>
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="EUR">EUR - Euro</option>
+                    </select>
+                  </div>
+
+                  <!-- Exchange Rate Fields - Show only if currency is not ETB -->
+                  <div v-if="newQuotation.currency !== 'ETB'">
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Conversion Rate *</label>
+                        <input 
+                          type="number" 
+                          v-model="newQuotation.conversion_rate"
+                          class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                          placeholder="1.0"
+                          step="0.0001"
+                          required
+                        >
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Price List Rate</label>
+                        <input 
+                          type="number" 
+                          v-model="newQuotation.plc_conversion_rate"
+                          class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                          placeholder="1.0"
+                          step="0.0001"
+                        >
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">
+                      Set exchange rate for {{ newQuotation.currency }} to ETB
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Valid Until *</label>
+                    <input 
+                      type="date" 
+                      v-model="newQuotation.valid_till"
+                      class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
+                      required
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Items Section -->
+          <div class="bg-[#2a4a58] rounded-lg border border-[#2a4a58] p-4 mb-6">
+            <h4 class="text-lg font-semibold text-white mb-4">Items</h4>
+            
+            <div class="space-y-4">
+              <div 
+                v-for="(item, index) in newQuotation.items" 
+                :key="index"
+                class="border border-[#2a4a58] rounded-md p-4"
+              >
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Item Code *</label>
+                    <select 
+                      v-model="item.item_code"
+                      @change="updateItemDetails(index)"
+                      class="w-full px-2 py-1 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-1 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white text-sm"
+                      required
+                    >
+                      <option value="">Select Item</option>
+                      <option 
+                        v-for="itemOption in items" 
+                        :key="itemOption.name"
+                        :value="itemOption.item_code"
+                      >
+                        {{ itemOption.item_name }}
+                      </option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Quantity *</label>
+                    <input 
+                      type="number" 
+                      v-model="item.qty"
+                      @input="calculateItemTotal(index)"
+                      class="w-full px-2 py-1 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-1 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white text-sm"
+                      min="1"
+                      required
+                    >
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Rate *</label>
+                    <input 
+                      type="number" 
+                      v-model="item.rate"
+                      @input="calculateItemTotal(index)"
+                      class="w-full px-2 py-1 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-1 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white text-sm"
+                      step="0.01"
+                      required
+                    >
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Amount</label>
+                    <div class="w-full px-2 py-1 border border-[#2a4a58] rounded-md bg-[#233d48] text-white text-sm">
+                      {{ formatCurrency(item.amount) }}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <div class="text-sm text-gray-400">
+                    {{ item.item_name || 'Select an item' }}
+                  </div>
+                  <button 
+                    @click="removeItem(index)"
+                    class="text-red-400 hover:text-red-300 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+              
+              <button 
+                @click="addItem"
+                class="w-full px-3 py-2 border-2 border-dashed border-[#2E86AB] text-[#2E86AB] bg-transparent hover:bg-[#2a4a58] font-medium rounded-md transition-colors duration-200 text-sm"
+              >
+                + Add Item
+              </button>
+            </div>
+          </div>
+
+          <!-- Totals Section -->
+          <div class="bg-[#2a4a58] rounded-lg border border-[#2a4a58] p-4 mb-6">
+            <h4 class="text-lg font-semibold text-white mb-4">Total Amount</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-sm text-gray-400 mb-1">Total</label>
+                <div class="text-xl font-bold text-white">{{ formatCurrency(calculateTotal()) }}</div>
+              </div>
+              <div>
+                <label class="block text-sm text-gray-400 mb-1">Currency</label>
+                <div class="text-lg text-white">{{ newQuotation.currency }}</div>
+              </div>
+              <div v-if="newQuotation.currency !== 'ETB'">
+                <label class="block text-sm text-gray-400 mb-1">Exchange Rate</label>
+                <div class="text-lg text-white">{{ newQuotation.conversion_rate }}</div>
+              </div>
+              <div v-if="newQuotation.currency !== 'ETB'">
+                <label class="block text-sm text-gray-400 mb-1">Total in ETB</label>
+                <div class="text-lg text-white">{{ formatCurrency(calculateTotal() * (newQuotation.conversion_rate || 1)) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-end space-x-3 pt-6 border-t border-[#2a4a58]">
+            <button 
+              @click="closeCreateModal"
+              class="px-6 py-2 border border-gray-500 text-gray-300 hover:bg-[#2a4a58] font-medium rounded-lg transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="saveQuotation"
+              :disabled="isSaving || !isFormValid"
+              :class="[
+                'px-6 py-2 font-medium rounded-lg transition-colors duration-200',
+                isSaving || !isFormValid
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-[#2E86AB] hover:bg-[#257195] text-white'
+              ]"
+            >
+              {{ isSaving ? 'Saving...' : 'Create Quotation' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -164,7 +429,14 @@ export default {
         lost: 0,
         ordered: 0
       },
-      loading: false
+      loading: false,
+      
+      // New quotation modal data
+      showCreateModal: false,
+      isSaving: false,
+      newQuotation: this.createEmptyQuotation(),
+      customers: [],
+      items: []
     }
   },
   computed: {
@@ -204,11 +476,35 @@ export default {
     },
     uniqueCustomers() {
       return [...new Set(this.quotations.map(q => q.customer_name))].sort()
+    },
+    
+    isFormValid() {
+      const requiredFields = [
+        this.newQuotation.party_name,
+        this.newQuotation.transaction_date,
+        this.newQuotation.valid_till,
+        this.newQuotation.currency
+      ];
+      
+      // Check if we have at least one item with required fields
+      const hasValidItems = this.newQuotation.items.length > 0 && 
+        this.newQuotation.items.every(item => 
+          item.item_code && item.qty > 0 && item.rate > 0
+        );
+      
+      // If currency is not ETB, conversion rate is required
+      if (this.newQuotation.currency !== 'ETB' && !this.newQuotation.conversion_rate) {
+        return false;
+      }
+      
+      return requiredFields.every(field => field && field.toString().trim() !== '') && hasValidItems;
     }
   },
   async mounted() {
     await this.loadQuotations()
     this.calculateOverview()
+    await this.loadCustomers()
+    await this.loadItems()
   },
   watch: {
     filters: {
@@ -219,10 +515,195 @@ export default {
     }
   },
   methods: {
+    createEmptyQuotation() {
+      return {
+        doctype: 'Quotation',
+        party_name: '',
+        quotation_to: 'Customer',
+        transaction_date: new Date().toISOString().split('T')[0],
+        valid_till: this.getDefaultValidTill(),
+        currency: 'ETB',
+        conversion_rate: 1.0,
+        plc_conversion_rate: 1.0,
+        items: [this.createEmptyItem()],
+        status: 'Draft'
+      }
+    },
+    
+    createEmptyItem() {
+      return {
+        item_code: '',
+        item_name: '',
+        qty: 1,
+        rate: 0.0,
+        amount: 0.0
+      }
+    },
+    
+    getDefaultValidTill() {
+      const date = new Date()
+      date.setDate(date.getDate() + 30) // Default to 30 days from now
+      return date.toISOString().split('T')[0]
+    },
+    
     viewQuotation(quotationId) {
       this.router.push(`/quotes/${quotationId}`)
     },
     
+    createNewQuotation() {
+      this.newQuotation = this.createEmptyQuotation()
+      this.showCreateModal = true
+    },
+    
+    closeCreateModal() {
+      this.showCreateModal = false
+      this.newQuotation = this.createEmptyQuotation()
+    },
+    
+    addItem() {
+      this.newQuotation.items.push(this.createEmptyItem())
+    },
+    
+    removeItem(index) {
+      if (this.newQuotation.items.length > 1) {
+        this.newQuotation.items.splice(index, 1)
+      }
+    },
+    
+    async updateItemDetails(index) {
+      const item = this.newQuotation.items[index]
+      if (item.item_code) {
+        const itemData = this.items.find(i => i.item_code === item.item_code)
+        if (itemData) {
+          item.item_name = itemData.item_name
+          item.rate = itemData.standard_rate || 0.0
+          this.calculateItemTotal(index)
+        }
+      }
+    },
+    
+    calculateItemTotal(index) {
+      const item = this.newQuotation.items[index]
+      item.amount = (item.qty || 0) * (item.rate || 0)
+    },
+    
+    calculateTotal() {
+      return this.newQuotation.items.reduce((total, item) => total + (item.amount || 0), 0)
+    },
+    
+    handleCurrencyChange() {
+      if (this.newQuotation.currency === 'ETB') {
+        this.newQuotation.conversion_rate = 1.0
+        this.newQuotation.plc_conversion_rate = 1.0
+      } else {
+        // Set default exchange rates for other currencies
+        this.newQuotation.conversion_rate = this.getDefaultExchangeRate(this.newQuotation.currency)
+        this.newQuotation.plc_conversion_rate = this.newQuotation.conversion_rate
+      }
+    },
+    
+    getDefaultExchangeRate(currency) {
+      const rates = {
+        'USD': 55.0,  // Example rate: 1 USD = 55 ETB
+        'EUR': 60.0   // Example rate: 1 EUR = 60 ETB
+      }
+      return rates[currency] || 1.0
+    },
+    
+    async loadCustomers() {
+      try {
+        const response = await fetch('/api/method/frappe.client.get_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doctype: 'Customer',
+            fields: ['name', 'customer_name'],
+            filters: [['disabled', '=', 0]],
+            order_by: 'customer_name',
+            limit: 1000
+          })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          this.customers = data.message
+        }
+      } catch (error) {
+        console.error('Error loading customers:', error)
+      }
+    },
+    
+    async loadItems() {
+      try {
+        const response = await fetch('/api/method/frappe.client.get_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doctype: 'Item',
+            fields: ['name', 'item_code', 'item_name', 'standard_rate'],
+            filters: [['disabled', '=', 0]],
+            order_by: 'item_name',
+            limit: 1000
+          })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          this.items = data.message
+        }
+      } catch (error) {
+        console.error('Error loading items:', error)
+      }
+    },
+    
+    async saveQuotation() {
+      if (this.isSaving || !this.isFormValid) return
+      
+      this.isSaving = true
+      
+      try {
+        const quotationData = {
+          doctype: 'Quotation',
+          ...this.newQuotation,
+          // Ensure exchange rates are set properly
+          conversion_rate: this.newQuotation.conversion_rate || 1.0,
+          plc_conversion_rate: this.newQuotation.plc_conversion_rate || this.newQuotation.conversion_rate || 1.0
+        }
+        
+        const response = await fetch('/api/method/frappe.client.insert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': this.getCSRFToken()
+          },
+          body: JSON.stringify({
+            doc: quotationData
+          })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          this.showAlert('Quotation created successfully!', 'green')
+          this.closeCreateModal()
+          await this.loadQuotations() // Refresh the list
+        } else {
+          const errorData = await response.json()
+          throw new Error(errorData._server_messages || 'Failed to create quotation')
+        }
+      } catch (error) {
+        console.error('Error creating quotation:', error)
+        this.showAlert('Error creating quotation: ' + error.message, 'red')
+      } finally {
+        this.isSaving = false
+      }
+    },
+
     async loadQuotations() {
       this.loading = true
       try {
@@ -236,7 +717,8 @@ export default {
             doctype: 'Quotation',
             fields: [
               'name', 'customer_name', 'quotation_to', 'transaction_date', 'valid_till',
-              'grand_total', 'currency', 'status', 'items', 'company', 'modified'
+              'grand_total', 'currency', 'status', 'items', 'company', 'modified',
+              'conversion_rate', 'plc_conversion_rate'
             ],
             limit_page_length: 100,
             order_by: 'modified desc'
@@ -314,6 +796,20 @@ export default {
     
     formatCurrency(amount) {
       return `ETB ${parseFloat(amount || 0).toFixed(2)}`
+    },
+    
+    showAlert(message, indicator) {
+      const alertDiv = document.createElement('div')
+      alertDiv.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        indicator === 'green' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+      }`
+      alertDiv.textContent = message
+      
+      document.body.appendChild(alertDiv)
+      
+      setTimeout(() => {
+        document.body.removeChild(alertDiv)
+      }, 3000)
     }
   }
 }

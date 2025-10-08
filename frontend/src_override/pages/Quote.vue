@@ -38,9 +38,7 @@
               <span v-if="isExpiringSoon" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-900 text-yellow-200">
                 Expiring soon
               </span>
-              <button class="bg-[#2E86AB] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#257195] transition-colors">
-                Edit Quotation
-              </button>
+    
             </div>
           </div>
         </div>
