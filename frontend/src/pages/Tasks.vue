@@ -82,8 +82,6 @@
               <select v-model="filters.type" class="bg-[#233d48] border border-[#315566] text-white rounded-lg px-4 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent">
                 <option value="all">All</option>
                 <option value="One-off job">One-off job</option>
-                <option value="Recurring job">Recurring job</option>
-                <option value="Maintenance">Maintenance</option>
               </select>
             </div>
           </div>
@@ -334,7 +332,7 @@ export default {
         description: '',
         expected_time: 0,
         progress: 0,
-        company: 'Friends ERP'
+        company: ''
       }
     }
   },
@@ -515,7 +513,7 @@ export default {
         description: '',
         expected_time: 0,
         progress: 0,
-        company: 'Friends ERP'
+        company: ''
       }
     },
 
