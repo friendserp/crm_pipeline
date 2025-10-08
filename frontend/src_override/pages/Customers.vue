@@ -162,12 +162,7 @@
             >
               View Details
             </button>
-            <button
-              @click.stop="editCustomer(customer)"
-              class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
-            >
-              Edit
-            </button>
+
           </div>
         </div>
       </div>
