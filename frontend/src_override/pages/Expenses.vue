@@ -241,12 +241,6 @@
                     >
                   </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Amount in Words</label>
-                    <div class="w-full px-3 py-2 border border-[#2a4a58] rounded-md bg-[#233d48] text-gray-300 text-sm min-h-[42px] flex items-center">
-                      {{ currentPayment.in_words || 'Zero' }}
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -635,20 +629,10 @@ export default {
             party_name: supplier.supplier_name,
             party_type: 'Supplier'
           }));
-        } else {
-          // Fallback to sample suppliers
-          this.suppliers = [
-            { name: 'SUPP-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Supplier' },
-            { name: 'SUPP-00002', party_name: 'Summit Traders Ltd.', party_type: 'Supplier' },
-            { name: 'SUPP-00003', party_name: 'Zuckerman Security Ltd.', party_type: 'Supplier' }
-          ];
-        }
+        } 
       } catch (error) {
         console.error('Error loading suppliers:', error);
-        this.suppliers = [
-          { name: 'SUPP-00001', party_name: 'Grant Plastics Ltd.', party_type: 'Supplier' },
-          { name: 'SUPP-00002', party_name: 'Summit Traders Ltd.', party_type: 'Supplier' }
-        ];
+
       }
     },
     
@@ -702,7 +686,6 @@ export default {
             filters: [
               ['account_type', '=', 'Cash'],
               ['is_group', '=', 0],
-              ['company', '=', 'Friends ERP (Demo)']
             ],
             order_by: 'name'
           })
@@ -711,18 +694,9 @@ export default {
         if (response.ok) {
           const data = await response.json();
           this.cashAccounts = data.message;
-        } else {
-          this.cashAccounts = [
-            { name: 'Cash - FED', account_type: 'Cash', account_name: 'Cash' },
-            { name: 'Petty Cash - FED', account_type: 'Cash', account_name: 'Petty Cash' }
-          ];
         }
       } catch (error) {
         console.error('Error loading cash accounts:', error);
-        this.cashAccounts = [
-          { name: 'Cash - FED', account_type: 'Cash', account_name: 'Cash' },
-          { name: 'Petty Cash - FED', account_type: 'Cash', account_name: 'Petty Cash' }
-        ];
       }
     },
     
