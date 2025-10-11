@@ -375,7 +375,7 @@
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-300">Tax:</span>
-                    <span class="text-white">ETB 0.00</span>
+                    <span class="text-white">$ US 0.00</span>
                   </div>
                   <div class="flex justify-between border-t border-[#233d48] pt-2">
                     <span class="text-white font-medium">Total:</span>
@@ -718,8 +718,8 @@ export default {
     },
     
     formatCurrency(amount) {
-      if (!amount && amount !== 0) return 'ETB 0.00';
-      return `ETB ${parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (!amount && amount !== 0) return '$ US 0.00';
+      return `$ US ${parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     },
     
     async getCSRFToken() {

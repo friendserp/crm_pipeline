@@ -360,7 +360,7 @@ export default {
     },
     
     formatCurrency(amount) {
-      return `ETB ${parseFloat(amount || 0).toFixed(2)}`
+      return `$ US ${parseFloat(amount || 0).toFixed(2)}`
     }
   }
 }

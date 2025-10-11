@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#233d48] py-6">
-    <div class="max-w-7xl mx-auto px-4">
+    <div class="max-w-full mx-auto px-4">
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-white">Appointment Calendar</h2>
@@ -11,7 +11,7 @@
               @click="showViewDropdown = !showViewDropdown"
               class="flex items-center space-x-2 px-4 py-2 border border-[#8acc33] rounded-md bg-[#233d48] text-[#8acc33] hover:bg-[#2a4a58] focus:outline-none focus:ring-2 focus:ring-[#8acc33] focus:border-transparent transition-colors duration-200"
             >
-              <span>{{ activeTab === 'calendar' ? 'Calendar View' : 'List View' }}</span>
+              <span>{{ getCurrentViewName() }}</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
@@ -61,7 +61,7 @@
       </div>
 
       <!-- Calendar View -->
-      <div v-if="activeTab === 'calendar'" class="bg-[#233d48] rounded-lg shadow-sm border border-[#2a4a58] overflow-hidden">
+      <div v-if="activeTab === 'calendar'" class="bg-[#233d48] rounded-lg shadow-sm border border-[#2a4a58]  w-full">
         <FullCalendar
           ref="calendarRef"
           :options="calendarOptions"
@@ -69,7 +69,7 @@
       </div>
 
       <!-- List View -->
-      <div v-if="activeTab === 'list'" class="bg-[#233d48] rounded-lg shadow-sm border border-[#2a4a58] overflow-hidden">
+      <div v-if="activeTab === 'list'" class="bg-[#233d48] rounded-lg shadow-sm border border-[#2a4a58] overflow-hidden w-full">
         <div class="px-6 py-4 border-b border-[#2a4a58] bg-[#2a4a58]">
           <h3 class="text-lg font-medium text-white">Appointments List</h3>
           <p class="mt-1 text-sm text-gray-300">All your appointments in a list format</p>
@@ -590,33 +590,64 @@ export default {
         eventResize: this.handleEventResize,
         eventDidMount: this.handleEventDidMount,
         select: this.handleDateSelect,
+        // FIXED: Better width and height handling
         height: 'auto',
+        contentHeight: 'auto',
+        aspectRatio: 1.8,
+        handleWindowResize: true,
+        windowResizeDelay: 100,
         eventTimeFormat: {
           hour: '2-digit',
           minute: '2-digit',
           hour12: true
         },
-        dayMaxEvents: 3,
+        dayMaxEvents: 5,
         views: {
           dayGridMonth: {
             dayMaxEventRows: 3,
+            dayHeaderFormat: { weekday: 'short' }
           },
           timeGridWeek: {
             allDaySlot: false,
+            slotDuration: '00:30:00',
+            slotLabelInterval: '01:00:00',
+            slotMinTime: '06:00:00',
+            slotMaxTime: '22:00:00',
+            expandRows: true,
+            dayHeaderFormat: { weekday: 'short', day: 'numeric', month: 'short' }
           },
           timeGridDay: {
             allDaySlot: false,
+            slotDuration: '00:30:00',
+            slotLabelInterval: '01:00:00',
+            slotMinTime: '06:00:00',
+            slotMaxTime: '22:00:00',
+            expandRows: true,
+            dayHeaderFormat: { weekday: 'long', day: 'numeric', month: 'long' }
           }
         },
         eventResizableFromStart: true,
-        selectable: true,
-        selectMirror: true,
         selectOverlap: false,
         slotMinTime: '06:00:00',
         slotMaxTime: '22:00:00',
         expandRows: true,
         stickyHeaderDates: true,
-        nowIndicator: true
+        nowIndicator: true,
+        // FIXED: Critical configuration for showing all days including Saturday
+        weekends: true,
+        firstDay: 0, // Sunday as first day
+        hiddenDays: [], // Show all days (empty array means no hidden days)
+        // Enhanced drag and drop
+        dragRevertDuration: 0,
+        dragScroll: true,
+        eventDragMinDistance: 0,
+        // Multi-day event support
+        eventDurationEditable: true,
+        eventStartEditable: true,
+        eventOverlap: false,
+        // Better event display
+        displayEventTime: true,
+        displayEventEnd: true
       }
     }
   },
@@ -685,6 +716,11 @@ export default {
     setActiveView(view) {
       this.activeTab = view;
       this.showViewDropdown = false;
+    },
+
+    getCurrentViewName() {
+      if (this.activeTab === 'list') return 'List View';
+      return 'Calendar View';
     },
     
     handleClickOutside(event) {
@@ -758,6 +794,23 @@ export default {
           "party": "CRM-LEAD-2025-00002",
           "scheduled_time": "2025-10-04 14:37:46",
           "status": "Open"
+        },
+        {
+          "appointment_with": "Customer",
+          "calendar_event": "EV00002",
+          "custom_scheduled_end_time": "2025-10-06 10:00:00",
+          "customer_details": "Multi-day project meeting",
+          "customer_email": "multi@day.com",
+          "customer_name": "Multi Day Event",
+          "customer_phone_number": "1234567890",
+          "customer_skype": null,
+          "docstatus": 0,
+          "doctype": "Appointment",
+          "modified": "2025-10-04 12:38:35.136958",
+          "name": "APMT-Multi-Day-0005",
+          "party": "CRM-LEAD-2025-00003",
+          "scheduled_time": "2025-10-04 09:00:00",
+          "status": "Scheduled"
         }
       ];
       this.updateCalendarEvents();
@@ -774,8 +827,24 @@ export default {
         },
         backgroundColor: this.getStatusColor(appointment.status),
         borderColor: this.getStatusColor(appointment.status),
-        textColor: '#ffffff'
+        textColor: '#ffffff',
+        // Enhanced event properties for better drag and drop
+        durationEditable: true,
+        startEditable: true,
+        editable: true,
+        // Multi-day support
+        allDay: this.isMultiDayEvent(appointment),
+        display: 'auto'
       }));
+    },
+
+    isMultiDayEvent(appointment) {
+      if (!appointment.scheduled_time || !appointment.custom_scheduled_end_time) return false;
+      
+      const start = new Date(appointment.scheduled_time);
+      const end = new Date(appointment.custom_scheduled_end_time);
+      
+      return start.toDateString() !== end.toDateString();
     },
     
     getStatusColor(status) {
@@ -837,30 +906,25 @@ export default {
       await this.deleteAppointment(appointment);
     },
     
-    // ... (rest of the existing methods remain the same)
     handleEventClick(info) {
       this.selectedAppointment = info.event.extendedProps.appointmentData;
     },
     
     async handleEventDrop(info) {
-      const appointment = info.event.extendedProps.appointmentData;
-      
-      // Get the actual displayed times from the calendar
-      const startTime = info.event.start;
-      const endTime = info.event.end || info.event.start;
-      
-      console.log('Event Drop:', {
-        original: {
-          start: appointment.scheduled_time,
-          end: appointment.custom_scheduled_end_time
-        },
-        new: {
-          start: startTime,
-          end: endTime
-        }
-      });
-      
       try {
+        const appointment = info.event.extendedProps.appointmentData;
+        
+        const startTime = info.event.start;
+        const endTime = info.event.end || new Date(startTime.getTime() + 60 * 60 * 1000);
+        
+        console.log('Event Drop:', {
+          customer: appointment.customer_name,
+          originalStart: appointment.scheduled_time,
+          originalEnd: appointment.custom_scheduled_end_time,
+          newStart: startTime,
+          newEnd: endTime
+        });
+        
         await this.updateAppointmentInERP({
           ...appointment,
           scheduled_time: this.formatDateForAPI(startTime),
@@ -868,32 +932,31 @@ export default {
         });
         
         await this.fetchAppointments();
+        
+        this.showNotification('Appointment moved successfully', 'success');
+        
       } catch (error) {
         console.error('Error updating appointment:', error);
         info.revert();
+        this.showNotification('Failed to move appointment', 'error');
       }
     },
     
     async handleEventResize(info) {
-      const appointment = info.event.extendedProps.appointmentData;
-      
-      // Get the actual displayed times from the calendar
-      const startTime = info.event.start;
-      const endTime = info.event.end;
-      
-      console.log('Event Resize:', {
-        original: {
-          start: appointment.scheduled_time,
-          end: appointment.custom_scheduled_end_time
-        },
-        new: {
-          start: startTime,
-          end: endTime
-        },
-        delta: info.delta
-      });
-      
       try {
+        const appointment = info.event.extendedProps.appointmentData;
+        
+        const startTime = info.event.start;
+        const endTime = info.event.end;
+        
+        console.log('Event Resize:', {
+          customer: appointment.customer_name,
+          originalStart: appointment.scheduled_time,
+          originalEnd: appointment.custom_scheduled_end_time,
+          newStart: startTime,
+          newEnd: endTime
+        });
+        
         await this.updateAppointmentInERP({
           ...appointment,
           scheduled_time: this.formatDateForAPI(startTime),
@@ -901,9 +964,13 @@ export default {
         });
         
         await this.fetchAppointments();
+        
+        this.showNotification('Appointment duration updated successfully', 'success');
+        
       } catch (error) {
         console.error('Error resizing appointment:', error);
         info.revert();
+        this.showNotification('Failed to update appointment duration', 'error');
       }
     },
     
@@ -918,17 +985,25 @@ export default {
       // Add hover tooltip
       info.el.setAttribute('title', this.getEventTooltip(appointment));
       
-      // Add custom hover class
+      // Enhanced hover effects
       info.el.addEventListener('mouseenter', () => {
         info.el.style.transform = 'scale(1.02)';
         info.el.style.zIndex = '1000';
         info.el.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        info.el.style.cursor = 'grab';
       });
       
       info.el.addEventListener('mouseleave', () => {
         info.el.style.transform = 'scale(1)';
         info.el.style.zIndex = '';
         info.el.style.boxShadow = '';
+        info.el.style.cursor = '';
+      });
+
+      // Better drag feedback
+      info.el.addEventListener('mousedown', () => {
+        info.el.style.cursor = 'grabbing';
+        info.el.style.opacity = '0.8';
       });
     },
     
@@ -937,12 +1012,10 @@ export default {
     },
     
     handleDateSelect(selectInfo) {
-      // When empty space is clicked, open create modal with pre-filled dates
       this.newAppointment.scheduled_time = this.formatDateForInput(selectInfo.start);
-      this.newAppointment.custom_scheduled_end_time = this.formatDateForInput(selectInfo.end);
+      this.newAppointment.custom_scheduled_end_time = this.formatDateForInput(selectInfo.end || new Date(selectInfo.start.getTime() + 60 * 60 * 1000));
       this.showNewAppointmentModal = true;
       
-      // Clear the selection
       selectInfo.view.calendar.unselect();
     },
     
@@ -972,13 +1045,14 @@ export default {
           this.updateCalendarEvents();
           this.showNewAppointmentModal = false;
           this.resetNewAppointmentForm();
+          this.showNotification('Appointment created successfully', 'success');
         } else {
           console.error('Failed to create appointment');
-          alert('Failed to create appointment. Please try again.');
+          this.showNotification('Failed to create appointment. Please try again.', 'error');
         }
       } catch (error) {
         console.error('Error creating appointment:', error);
-        alert('Error creating appointment. Please try again.');
+        this.showNotification('Error creating appointment. Please try again.', 'error');
       }
     },
     
@@ -991,12 +1065,21 @@ export default {
           custom_scheduled_end_time: this.formatDateForAPI(this.editingAppointment.custom_scheduled_end_time)
         };
         
-        await this.updateAppointmentInERP(formattedAppointment);
+        const result = await this.updateAppointmentInERP(formattedAppointment);
+        
+        // Update the local appointment data
+        const index = this.appointments.findIndex(a => a.name === this.editingAppointment.name);
+        if (index !== -1) {
+          this.appointments[index] = { ...this.appointments[index], ...this.editingAppointment };
+        }
+        
+        this.updateCalendarEvents();
         this.editingAppointment = null;
-        await this.fetchAppointments();
+        this.showNotification('Appointment updated successfully', 'success');
+        
       } catch (error) {
         console.error('Error updating appointment:', error);
-        alert('Error updating appointment. Please try again.');
+        this.showNotification('Error updating appointment. Please try again.', 'error');
       }
     },
     
@@ -1010,7 +1093,16 @@ export default {
         body: JSON.stringify({
           doctype: 'Appointment',
           name: appointmentData.name,
-          fieldname: appointmentData
+          fieldname: {
+            customer_name: appointmentData.customer_name,
+            customer_email: appointmentData.customer_email,
+            customer_phone_number: appointmentData.customer_phone_number,
+            customer_details: appointmentData.customer_details,
+            scheduled_time: appointmentData.scheduled_time,
+            custom_scheduled_end_time: appointmentData.custom_scheduled_end_time,
+            appointment_with: appointmentData.appointment_with,
+            status: appointmentData.status
+          }
         })
       });
       
@@ -1040,13 +1132,14 @@ export default {
             this.appointments = this.appointments.filter(a => a.name !== appointment.name);
             this.updateCalendarEvents();
             this.selectedAppointment = null;
+            this.showNotification('Appointment deleted successfully', 'success');
           } else {
             console.error('Failed to delete appointment');
-            alert('Failed to delete appointment. Please try again.');
+            this.showNotification('Failed to delete appointment. Please try again.', 'error');
           }
         } catch (error) {
           console.error('Error deleting appointment:', error);
-          alert('Error deleting appointment. Please try again.');
+          this.showNotification('Error deleting appointment. Please try again.', 'error');
         }
       }
     },
@@ -1074,7 +1167,6 @@ export default {
     formatDateForAPI(dateTime) {
       if (!dateTime) return '';
       
-      // Handle both Date objects and string inputs
       const date = dateTime instanceof Date ? dateTime : new Date(dateTime);
       
       const year = date.getFullYear();
@@ -1082,8 +1174,9 @@ export default {
       const day = String(date.getDate()).padStart(2, '0');
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
       
-      return `${year}-${month}-${day} ${hours}:${minutes}:00`;
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     },
     
     formatDateForInput(dateTimeString) {
@@ -1122,6 +1215,24 @@ export default {
     getCSRFToken() {
       const metaTag = document.querySelector('meta[name="csrf-token"]');
       return metaTag ? metaTag.getAttribute('content') : '';
+    },
+
+    showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-md shadow-lg border ${
+        type === 'success' ? 'bg-green-500 text-white border-green-600' :
+        type === 'error' ? 'bg-red-500 text-white border-red-600' :
+        'bg-blue-500 text-white border-blue-600'
+      }`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 3000);
     }
   }
 }
@@ -1133,10 +1244,21 @@ export default {
   font-family: 'Inter', sans-serif;
 }
 
+/* FIXED: Full width container */
+.fc .fc-view-harness {
+  width: 100% !important;
+}
+
+.fc .fc-scrollgrid {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
 .fc-header-toolbar {
   padding: 1.5rem 1.5rem 0.5rem 1.5rem;
   margin-bottom: 0 !important;
   background-color: #233d48 !important;
+  width: 100% !important;
 }
 
 .fc-toolbar-title {
@@ -1201,6 +1323,7 @@ export default {
   color: white !important;
 }
 
+/* FIXED: Ensure all days including Saturday are properly styled and have proper width */
 .fc-col-header-cell {
   background-color: #2a4a58 !important;
   font-weight: 600;
@@ -1208,6 +1331,13 @@ export default {
   padding: 0.75rem 0;
   border-right: 1px solid #4b5e6a !important;
   border-bottom: 1px solid #4b5e6a !important;
+  width: 14.2857% !important; /* Equal width for 7 days */
+}
+
+/* Specific styling for Saturday column */
+.fc-col-header-cell.fc-day-sat {
+  background-color: #2a4a58 !important;
+  color: white !important;
 }
 
 .fc-col-header-cell:last-child {
@@ -1218,6 +1348,25 @@ export default {
   min-height: 120px;
   border-right: 1px solid #4b5e6a !important;
   border-bottom: 1px solid #4b5e6a !important;
+  width: 100% !important;
+}
+
+/* Ensure all day cells have equal width */
+.fc-daygrid-day {
+  width: 14.2857% !important;
+}
+
+/* Ensure Saturday cells are visible */
+.fc-day-sat {
+  background-color: #233d48 !important;
+}
+
+.fc-day-sat.fc-day-today {
+  background-color: #2a4a58 !important;
+}
+
+.fc-day-sat.fc-day-other {
+  background-color: #1d313a !important;
 }
 
 .fc-daygrid-day:last-child .fc-daygrid-day-frame {
@@ -1226,6 +1375,7 @@ export default {
 
 .fc-scrollgrid {
   border: 1px solid #4b5e6a !important;
+  width: 100% !important;
 }
 
 .fc-theme-standard td, .fc-theme-standard th {
@@ -1240,7 +1390,7 @@ export default {
   color: #6b7280 !important;
 }
 
-/* TimeGrid views (Week and Day) */
+/* FIXED: TimeGrid views (Week and Day) - Better width handling */
 .fc-timegrid-slot {
   border-bottom: 1px solid #4b5e6a !important;
 }
@@ -1253,7 +1403,19 @@ export default {
   border-color: #8acc33 !important;
 }
 
+/* Enhanced drag and drop styles */
+.fc-event-dragging {
+  opacity: 0.9 !important;
+  transform: rotate(3deg) scale(1.02) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  z-index: 1001 !important;
+  cursor: grabbing !important;
+}
 
+.fc-highlight {
+  background: rgba(138, 204, 51, 0.15) !important;
+  border: 2px dashed #8acc33 !important;
+}
 
 /* Selection highlight */
 .fc-highlight {
@@ -1290,8 +1452,17 @@ export default {
   border-radius: 0.375rem;
 }
 
+/* Enhanced cursor feedback */
+.fc-event {
+  cursor: grab;
+  user-select: none;
+}
 
-/* Responsive adjustments */
+.fc-event:active {
+  cursor: grabbing;
+}
+
+/* FIXED: Better responsive design */
 @media (max-width: 768px) {
   .fc-toolbar {
     flex-direction: column;
@@ -1301,10 +1472,74 @@ export default {
   .fc-toolbar-chunk {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
   }
   
   .fc-event-resizer {
-    opacity: 1; /* Always show on mobile for better UX */
+    opacity: 1;
   }
+  
+  /* Ensure all days are visible on mobile */
+  .fc-day-sat .fc-daygrid-day-number,
+  .fc-day-sun .fc-daygrid-day-number {
+    color: white !important;
+  }
+  
+  .fc-col-header-cell {
+    font-size: 0.7rem;
+    padding: 0.5rem 0;
+  }
+  
+  .fc-daygrid-day-number {
+    font-size: 0.8rem;
+    padding: 0.25rem;
+  }
+}
+
+/* Additional fixes for better calendar display */
+.fc .fc-event {
+  touch-action: pan-y;
+}
+
+/* Ensure proper z-index during drag */
+.fc-event.fc-event-dragging,
+.fc-event.fc-event-resizing {
+  z-index: 1001 !important;
+}
+
+/* Weekend day styling */
+.fc-day-sat,
+.fc-day-sun {
+  background-color: #233d48 !important;
+}
+
+.fc-day-sat.fc-day-other,
+.fc-day-sun.fc-day-other {
+  background-color: #1d313a !important;
+}
+
+/* Make sure all calendar cells have proper styling and width */
+.fc-daygrid-day {
+  background-color: #233d48 !important;
+  width: 14.2857% !important; /* Equal width for 7 days */
+}
+
+.fc-daygrid-day.fc-day-other {
+  background-color: #1d313a !important;
+}
+
+/* FIXED: TimeGrid week view column widths */
+.fc-timegrid-axis,
+.fc-timegrid-slots {
+  width: auto !important;
+}
+
+.fc-timegrid-col {
+  width: 14.2857% !important; /* Equal width for 7 days in week view */
+}
+
+/* Ensure the calendar takes full available width */
+.fc .fc-view {
+  width: 100% !important;
 }
 </style>

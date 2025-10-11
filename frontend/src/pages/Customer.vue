@@ -270,7 +270,7 @@ const internalNotes = ref('')
 const tasks = ref([])
 const appointments = ref([])
 const salesInvoices = ref([])
-const defaultCurrency = ref('ETB') // Default currency, you can change this
+const defaultCurrency = ref('USD') // Default currency, you can change this
 
 // Computed properties for filtered data
 const filteredTasks = computed(() => {
@@ -530,7 +530,7 @@ const formatDateTime = (dateTimeString) => {
   })
 }
 
-const formatCurrency = (amount, currency = 'ETB') => {
+const formatCurrency = (amount, currency = 'USD') => {
   if (amount === null || amount === undefined) return 'N/A'
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

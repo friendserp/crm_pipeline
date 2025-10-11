@@ -225,41 +225,12 @@
                       class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
                       required
                     >
-                      <option value="ETB">ETB - Ethiopian Birr</option>
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
                     </select>
                   </div>
 
-                  <!-- Exchange Rate Fields - Show only if currency is not ETB -->
-                  <div v-if="newQuotation.currency !== 'ETB'">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Conversion Rate *</label>
-                        <input 
-                          type="number" 
-                          v-model="newQuotation.conversion_rate"
-                          class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
-                          placeholder="1.0"
-                          step="0.0001"
-                          required
-                        >
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Price List Rate</label>
-                        <input 
-                          type="number" 
-                          v-model="newQuotation.plc_conversion_rate"
-                          class="w-full px-3 py-2 border border-[#2a4a58] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2E86AB] focus:border-transparent bg-[#233d48] text-white"
-                          placeholder="1.0"
-                          step="0.0001"
-                        >
-                      </div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">
-                      Set exchange rate for {{ newQuotation.currency }} to ETB
-                    </p>
-                  </div>
+
 
                   <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Valid Until *</label>
@@ -367,14 +338,7 @@
                 <label class="block text-sm text-gray-400 mb-1">Currency</label>
                 <div class="text-lg text-white">{{ newQuotation.currency }}</div>
               </div>
-              <div v-if="newQuotation.currency !== 'ETB'">
-                <label class="block text-sm text-gray-400 mb-1">Exchange Rate</label>
-                <div class="text-lg text-white">{{ newQuotation.conversion_rate }}</div>
-              </div>
-              <div v-if="newQuotation.currency !== 'ETB'">
-                <label class="block text-sm text-gray-400 mb-1">Total in ETB</label>
-                <div class="text-lg text-white">{{ formatCurrency(calculateTotal() * (newQuotation.conversion_rate || 1)) }}</div>
-              </div>
+  
             </div>
           </div>
 
@@ -493,7 +457,7 @@ export default {
         );
       
       // If currency is not ETB, conversion rate is required
-      if (this.newQuotation.currency !== 'ETB' && !this.newQuotation.conversion_rate) {
+      if (this.newQuotation.currency !== 'USD' && !this.newQuotation.conversion_rate) {
         return false;
       }
       
@@ -522,7 +486,7 @@ export default {
         quotation_to: 'Customer',
         transaction_date: new Date().toISOString().split('T')[0],
         valid_till: this.getDefaultValidTill(),
-        currency: 'ETB',
+        currency: 'USD',
         conversion_rate: 1.0,
         plc_conversion_rate: 1.0,
         items: [this.createEmptyItem()],
@@ -592,7 +556,7 @@ export default {
     },
     
     handleCurrencyChange() {
-      if (this.newQuotation.currency === 'ETB') {
+      if (this.newQuotation.currency === 'USD') {
         this.newQuotation.conversion_rate = 1.0
         this.newQuotation.plc_conversion_rate = 1.0
       } else {
@@ -604,7 +568,7 @@ export default {
     
     getDefaultExchangeRate(currency) {
       const rates = {
-        'USD': 55.0,  // Example rate: 1 USD = 55 ETB
+        'USD': 55.0, 
         'EUR': 60.0   // Example rate: 1 EUR = 60 ETB
       }
       return rates[currency] || 1.0
@@ -795,7 +759,7 @@ export default {
     },
     
     formatCurrency(amount) {
-      return `ETB ${parseFloat(amount || 0).toFixed(2)}`
+      return `${parseFloat(amount || 0).toFixed(2)}`
     },
     
     showAlert(message, indicator) {

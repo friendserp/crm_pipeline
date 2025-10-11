@@ -400,11 +400,11 @@ export default {
     },
     
     formatCurrency(amount) {
-      if (!amount && amount !== 0) return 'ETB 0.00'
+      if (!amount && amount !== 0) return '$ US 0.00'
       try {
-        return `ETB ${parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        return `$ US ${parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       } catch (error) {
-        return 'ETB 0.00'
+        return '$ US 0.00'
       }
     },
     
