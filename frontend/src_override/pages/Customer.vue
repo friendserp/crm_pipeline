@@ -14,12 +14,12 @@
           >
             Back to Clients
           </button>
-          <button
+          <!-- <button
             @click="deleteCustomer"
             class="px-4 py-2 bg-red-600 text-white rounded-md font-medium transition-colors duration-200 hover:bg-red-700"
           >
             Delete Client
-          </button>
+          </button> -->
         </div>
       </div>
 
